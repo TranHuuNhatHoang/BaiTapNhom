@@ -1,0 +1,15 @@
+# Cấu hình chứa thông tin nhạy cảm
+config/db.php
+.env
+
+# Thư mục tạm và vendor
+/vendor/
+/node_modules/
+
+# Thư mục lưu trữ ảnh tải lên
+/public/uploads/
+
+# File hệ thống và file tạm
+.DS_Store
+.idea/
+*.log
