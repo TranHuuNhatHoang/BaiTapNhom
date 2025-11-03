@@ -4,7 +4,7 @@
 
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
-define('DB_PASS', ''); // <-- Điền mật khẩu root XAMPP của bạn
+define('DB_PASS', 'PASSWORD_CUA_BAN'); // <-- Điền mật khẩu root XAMPP của bạn
 define('DB_NAME', 'laptop_store');
 define('DB_PORT', 3307); // <-- THÊM DÒNG NÀY
 
