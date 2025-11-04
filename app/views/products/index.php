@@ -26,8 +26,12 @@
                     </p>
                     
                     <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=detail&id=<?php echo $product['product_id']; ?>">
-    Xem chi tiết
-</a>
+                        Xem chi tiết</a>
+                    <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=cart&action=add" style="margin-top: 10px;">
+                        <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
+                        <input type="number" name="quantity" value="1" min="1" style="width: 50px;">
+                        <button type="submit">Thêm vào giỏ</button>
+                    </form>
                 </div>
             <?php endforeach; ?>
 
