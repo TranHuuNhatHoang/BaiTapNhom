@@ -25,7 +25,9 @@
                         <?php echo number_format($product['price']); ?> VND
                     </p>
                     
-                    <a href="#">Xem chi tiết</a>
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=detail&id=<?php echo $product['product_id']; ?>">
+    Xem chi tiết
+</a>
                 </div>
             <?php endforeach; ?>
 
