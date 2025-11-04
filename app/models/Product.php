@@ -65,5 +65,30 @@ class Product {
             return false;
         }
     }
+    /**
+     * Hàm lấy MỘT sản phẩm bằng ID (kèm Brand và Category)
+     */
+    public function getProductById($id) {
+        $sql = "SELECT 
+                    p.*, 
+                    b.brand_name, 
+                    c.category_name
+                FROM 
+                    products p
+                LEFT JOIN 
+                    brands b ON p.brand_id = b.brand_id
+                LEFT JOIN 
+                    categories c ON p.category_id = c.category_id
+                WHERE 
+                    p.product_id = ?"; // Dùng prepared statement
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id); // 'i' nghĩa là 'integer'
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        // Trả về sản phẩm (dưới dạng mảng)
+        return $result->fetch_assoc();
+    }
 }
 ?>
