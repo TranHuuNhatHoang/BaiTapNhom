@@ -1,20 +1,17 @@
 <?php
 class Product {
-    
-    private $conn; // Biến để giữ kết nối CSDL
+    private $conn; // Biến kết nối CSDL
 
-    // Hàm này sẽ được gọi khi bạn tạo 'new Product()'
+    // Hàm khởi tạo — tự chạy khi gọi new Product($conn)
     public function __construct($db_connection) {
         $this->conn = $db_connection;
     }
 
     /**
-     * Hàm lấy TẤT CẢ sản phẩm, KÈM THEO TÊN BRAND VÀ CATEGORY
+     * 🧩 LẤY TẤT CẢ SẢN PHẨM (KÈM TÊN HÃNG VÀ DANH MỤC)
+     * Dùng cho trang Admin và trang Sản phẩm
      */
     public function getAllProducts() {
-        
-        // 1. Viết câu SQL với LEFT JOIN
-        // p = products, b = brands, c = categories
         $sql = "SELECT 
                     p.*, 
                     b.brand_name, 
@@ -28,24 +25,45 @@ class Product {
                 ORDER BY 
                     p.created_at DESC";
 
-        // 2. Thực thi truy vấn
         $result = $this->conn->query($sql);
 
-        // 3. Kiểm tra và trả về kết quả
-        if ($result->num_rows > 0) {
-            // Lấy tất cả các dòng và trả về dưới dạng mảng
+        if ($result && $result->num_rows > 0) {
             return $result->fetch_all(MYSQLI_ASSOC);
         } else {
-            // Trả về mảng rỗng nếu không có sản phẩm
             return [];
         }
     }
 
     /**
-     * (Sau này bạn sẽ thêm các hàm khác ở đây, ví dụ:
-     * public function getProductById($id) { ... }
-     * public function createProduct($data) { ... }
-     * ...)
+     * 🆕 TẠO SẢN PHẨM MỚI
+     * Dùng khi thêm sản phẩm trong trang Admin
      */
+    public function createProduct($name, $price, $brand_id, $category_id, $quantity, $description, $main_image) {
+        // Tạo slug (chuỗi URL-friendly)
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+
+        $sql = "INSERT INTO products 
+                (product_name, slug, brand_id, category_id, price, quantity, description, main_image) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $this->conn->prepare($sql);
+
+        // Kiểm tra chuẩn bị truy vấn
+        if (!$stmt) {
+            die("Lỗi prepare SQL: " . $this->conn->error);
+        }
+
+        // Gắn tham số vào truy vấn (bind)
+        // s = string, i = integer, d = double
+        $stmt->bind_param("ssiiidss", $name, $slug, $brand_id, $category_id, $price, $quantity, $description, $main_image);
+
+        // Thực thi truy vấn
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            echo "Lỗi thêm sản phẩm: " . $stmt->error;
+            return false;
+        }
+    }
 }
 ?>
