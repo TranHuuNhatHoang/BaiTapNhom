@@ -2,9 +2,9 @@
 // Bắt đầu session để có thể dùng cho đăng nhập, giỏ hàng
 session_start();
 
-// Tải file config chung
+// Tải file config chung (chứa BASE_URL, DB_HOST, ...)
 require_once 'config/config.php';
-// Tải file kết nối CSDL ($pdo)
+// Tải file kết nối CSDL (TẠO RA BIẾN $conn)
 require_once 'config/db.php'; 
 
 // ----- BỘ ĐIỀU TUYẾN (ROUTER) ĐƠN GIẢN -----
@@ -19,6 +19,7 @@ $actionName = isset($_GET['action']) ? $_GET['action'] : 'index';
 $controllerClassName = ucfirst($controllerName) . 'Controller';
 
 // 4. Xây dựng đường dẫn file controller
+// (Lưu ý: ROOT_PATH phải được định nghĩa trong config.php)
 $controllerFilePath = ROOT_PATH . '/app/controllers/' . $controllerClassName . '.php';
 
 // 5. Kiểm tra file controller có tồn tại không
@@ -28,6 +29,8 @@ if (file_exists($controllerFilePath)) {
 
     // 6. Kiểm tra class controller có tồn tại không
     if (class_exists($controllerClassName)) {
+        
+        // $conn đã được tải ở trên và sẽ có sẵn cho controller (thông qua global)
         $controller = new $controllerClassName();
 
         // 7. Kiểm tra phương thức (action) có tồn tại trong class đó không
