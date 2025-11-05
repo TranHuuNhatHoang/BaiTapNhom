@@ -72,5 +72,70 @@ class AdminController {
             }
         }
     }
+    public function edit() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) die("ID không hợp lệ.");
+
+        global $conn;
+        
+        // 1. Lấy thông tin sản phẩm cần sửa
+        $productModel = new Product($conn);
+        $product = $productModel->getProductById($id); // <-- Cần hàm này
+        if (!$product) die("Không tìm thấy sản phẩm.");
+        
+        // 2. Lấy data cho dropdown (giống hệt hàm create)
+        $brandModel = new Brand($conn);
+        $brands = $brandModel->getAllBrands();
+        
+        $categoryModel = new Category($conn);
+        $categories = $categoryModel->getAllCategories();
+        
+        // 3. Tải view form (dùng chung view 'product_form.php')
+        // (Truyền cả $product, $brands, $categories cho view)
+        require_once ROOT_PATH . '/app/views/admin/product_form.php';
+    }
+public function update() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Lấy ID từ form (phải là hidden input)
+            $id = (int)$_POST['product_id'];
+            if ($id <= 0) die("ID không hợp lệ.");
+
+            // Lấy data (giống hàm store)
+            $name = $_POST['product_name'];
+            $price = $_POST['price'];
+            $brand_id = $_POST['brand_id'];
+            $category_id = $_POST['category_id'];
+            $quantity = $_POST['quantity'];
+            $description = $_POST['description'];
+            $main_image = $_POST['main_image'];
+
+            global $conn;
+            $productModel = new Product($conn);
+            
+            if ($productModel->updateProduct($id, $name, $price, $brand_id, $category_id, $quantity, $description, $main_image)) {
+                // Sửa thành công, quay lại trang danh sách
+                header("Location: " . BASE_URL . "index.php?controller=admin");
+                exit;
+            } else {
+                die("Lỗi khi cập nhật sản phẩm.");
+            }
+        }
+    }
+    public function delete() {
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) die("ID không hợp lệ.");
+        
+        global $conn;
+        $productModel = new Product($conn);
+        
+        if ($productModel->deleteProduct($id)) {
+            // Xóa thành công, quay lại trang danh sách
+            header("Location: " . BASE_URL . "index.php?controller=admin");
+            exit;
+        } else {
+            die("Lỗi khi xóa sản phẩm.");
+        }
+    }
+
 }
 ?>

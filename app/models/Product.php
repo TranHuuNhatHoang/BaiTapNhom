@@ -90,5 +90,34 @@ class Product {
         // Trả về sản phẩm (dưới dạng mảng)
         return $result->fetch_assoc();
     }
+    /**
+     * HÀM MỚI: Cập nhật sản phẩm
+     */
+    public function updateProduct($id, $name, $price, $brand_id, $category_id, $quantity, $description, $main_image) {
+        // Tạo lại 'slug'
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
+        
+        $sql = "UPDATE products SET 
+                    product_name = ?, slug = ?, brand_id = ?, category_id = ?, 
+                    price = ?, quantity = ?, description = ?, main_image = ?
+                WHERE product_id = ?";
+                
+        $stmt = $this->conn->prepare($sql);
+        // "ssiiidssi" = 8 tham số + 1 ID ở cuối
+        $stmt->bind_param("ssiiidssi", $name, $slug, $brand_id, $category_id, $price, $quantity, $description, $main_image, $id);
+        
+        return $stmt->execute();
+    }
+
+    /**
+     * HÀM MỚI: Xóa sản phẩm
+     */
+    public function deleteProduct($id) {
+        $sql = "DELETE FROM products WHERE product_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        
+        return $stmt->execute();
+    }
 }
 ?>
