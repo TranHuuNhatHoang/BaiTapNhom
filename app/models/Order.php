@@ -5,7 +5,12 @@ class Order {
     public function __construct($db_connection) {
         $this->conn = $db_connection;
     }
- public function createOrder($user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method) {
+
+    /**
+     * Tạo một đơn hàng mới trong bảng 'orders'
+     * Trả về ID của đơn hàng vừa tạo (order_id)
+     */
+    public function createOrder($user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method) {
         $sql = "INSERT INTO orders (user_id, total_amount, shipping_address, shipping_phone, notes, payment_method, order_status)
                 VALUES (?, ?, ?, ?, ?, ?, 'pending')";
         
@@ -20,6 +25,7 @@ class Order {
             return false;
         }
     }
+
     /**
      * HÀM MỚI CỦA BẠN: Lấy tất cả đơn hàng (cho Admin)
      * (JOIN với 'users' để lấy tên người đặt)
