@@ -78,6 +78,20 @@ class User {
         return $result->fetch_assoc();
     }
 
+    /**
+     * HÀM MỚI CỦA BẠN: Cập nhật thông tin (không đổi mật khẩu)
+     * (CSDL của bạn có 'phone', 'address', 'province')
+     */
+    public function updateProfile($user_id, $full_name, $phone, $address, $province) {
+        $sql = "UPDATE users SET full_name = ?, phone = ?, address = ?, province = ?
+                WHERE user_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssssi", $full_name, $phone, $address, $province, $user_id);
+        
+        return $stmt->execute();
+    }
+
 
 
 }

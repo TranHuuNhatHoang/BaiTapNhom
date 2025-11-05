@@ -14,7 +14,9 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
         <?php if (isset($_SESSION['user_id'])): ?>
             
             <li>
-                <a>Xin chào, <?php echo htmlspecialchars($_SESSION['user_full_name']); ?>!</a>
+                <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=index">
+                    Xin chào, <?php echo htmlspecialchars($_SESSION['user_full_name']); ?>!
+                </a>
             </li>
             
             <?php if ($_SESSION['user_role'] === 'admin'): ?>
