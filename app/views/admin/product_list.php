@@ -1,4 +1,11 @@
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
+
+<div style="margin-bottom: 20px;">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" 
+       style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+        📦 Quản lý Đơn hàng
+    </a>
+</div>
 <h2>Quản lý Sản phẩm</h2>
 
 <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=create" style="background-color: green; color: white; padding: 10px; text-decoration: none;">
@@ -41,8 +48,8 @@
         Sửa
     </a> | 
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=delete&id=<?php echo $product['product_id']; ?>" 
-       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');" 
-       style="color: red;">
+        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');" 
+        style="color: red;">
         Xóa
     </a>
 </td>
