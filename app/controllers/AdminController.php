@@ -3,7 +3,7 @@
 require_once ROOT_PATH . '/app/models/Product.php';
 require_once ROOT_PATH . '/app/models/Brand.php';
 require_once ROOT_PATH . '/app/models/Category.php';
-
+require_once ROOT_PATH . '/app/models/Order.php';
 class AdminController {
 
     /**
@@ -136,6 +136,14 @@ public function update() {
             die("Lỗi khi xóa sản phẩm.");
         }
     }
-
+   public function listOrders() {
+        global $conn;
+        $orderModel = new Order($conn);
+        $orders = $orderModel->getAllOrders();
+        
+        // Tải view danh sách
+        require_once ROOT_PATH . '/app/views/admin/order_list.php'; // Sẽ tạo ở bước 3
+    }
+    
 }
 ?>

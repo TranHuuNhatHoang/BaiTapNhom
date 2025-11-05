@@ -16,7 +16,7 @@ class Order {
         
         $stmt = $this->conn->prepare($sql);
         // (i = integer, d = double, s = string)
-        $stmt->bind_param("idsssss", $user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method);
+$stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method);
         
         if ($stmt->execute()) {
             // Lấy ID của đơn hàng vừa chèn
