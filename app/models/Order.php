@@ -38,5 +38,20 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    /**
+     * HÀM MỚI CỦA BẠN: Lấy đơn hàng của MỘT người dùng
+     */
+    public function getOrdersByUserId($user_id) {
+        $sql = "SELECT * FROM orders 
+                WHERE user_id = ?
+                ORDER BY created_at DESC";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>
