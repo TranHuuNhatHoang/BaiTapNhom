@@ -36,6 +36,10 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 
         <?php endif; ?>
 
-        <li><a href="#">Giỏ hàng</a></li>
+        <li>
+            <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=index">
+                Giỏ hàng (<?php echo $cart_count; ?>)
+            </a>
+        </li>
     </ul>
 </nav>

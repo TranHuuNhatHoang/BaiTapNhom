@@ -1,66 +1,103 @@
 <?php
+// Tải Product model để lấy thông tin chi tiết sản phẩm
+require_once ROOT_PATH . '/app/models/Product.php';
+
 class CartController {
 
     /**
-     * Action: Thêm sản phẩm vào giỏ hàng (Session)
-     * URL: (Form POST tới) index.php?controller=cart&action=add
+     * Action: Hiển thị trang giỏ hàng chi tiết
+     * URL: index.php?controller=cart&action=index
+     */
+    public function index() {
+        $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
+        $cart_items = []; // Mảng chứa thông tin chi tiết sản phẩm
+        $total_price = 0;
+
+        if (!empty($cart)) {
+            global $conn;
+            $productModel = new Product($conn);
+            
+            // Lặp qua giỏ hàng (chỉ có ID và số lượng)
+            foreach ($cart as $product_id => $quantity) {
+                $product = $productModel->getProductById($product_id);
+                if ($product) {
+                    // Thêm thông tin chi tiết vào mảng
+                    $product['quantity_in_cart'] = $quantity;
+                    $cart_items[] = $product;
+                    
+                    // Tính tổng tiền
+                    $total_price += $product['price'] * $quantity;
+                }
+            }
+        }
+        
+        // Tải View (truyền $cart_items và $total_price cho view)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/cart/index.php'; // Sẽ tạo ở bước 3
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+    /**
+     * Action: Thêm vào giỏ hàng (đã làm)
      */
     public function add() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            
-            // 1. Lấy thông tin từ form
             $product_id = $_POST['product_id'];
             $quantity = (int)$_POST['quantity'];
             
-            // 2. Validate
-            if ($quantity <= 0) {
-                $quantity = 1;
-            }
+            if ($quantity <= 0) $quantity = 1;
+            if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 
-            // 3. Khởi tạo giỏ hàng nếu chưa có
-            if (!isset($_SESSION['cart'])) {
-                $_SESSION['cart'] = [];
-            }
-
-            // 4. Thêm/Cập nhật sản phẩm vào giỏ
             if (isset($_SESSION['cart'][$product_id])) {
-                // Nếu đã có, cộng dồn số lượng
                 $_SESSION['cart'][$product_id] += $quantity;
             } else {
-                // Nếu chưa có, thêm mới
                 $_SESSION['cart'][$product_id] = $quantity;
             }
             
-            // 5. Thêm xong, quay lại trang chủ (hoặc trang chi tiết)
-            // Tốt hơn là quay về trang giỏ hàng để xem
+            // Chuyển đến trang giỏ hàng
             header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
             exit;
         }
     }
 
     /**
-     * Action: Hiển thị trang giỏ hàng (tạm thời)
-     * URL: index.php?controller=cart&action=index
+     * Action: Cập nhật số lượng sản phẩm
+     * URL: (Form POST tới) index.php?controller=cart&action=update
      */
-    public function index() {
-        // Tải header
-        require_once ROOT_PATH . '/app/views/layouts/header.php';
+    public function update() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $product_id = $_POST['product_id'];
+            $quantity = (int)$_POST['quantity'];
 
-        echo "<h1>Giỏ hàng của bạn</h1>";
-        
-        // In ra nội dung giỏ hàng (để test)
-        echo "<pre>";
-        if (!empty($_SESSION['cart'])) {
-            print_r($_SESSION['cart']);
-        } else {
-            echo "Giỏ hàng rỗng.";
+            if (isset($_SESSION['cart'][$product_id])) {
+                if ($quantity > 0) {
+                    $_SESSION['cart'][$product_id] = $quantity;
+                } else {
+                    // Nếu số lượng là 0 hoặc âm, coi như là xóa
+                    unset($_SESSION['cart'][$product_id]);
+                }
+            }
+            
+            // Cập nhật xong, quay lại trang giỏ hàng
+            header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+            exit;
         }
-        echo "</pre>";
-        
-        // (Sau này bạn sẽ tạo file app/views/cart/index.php đẹp hơn)
+    }
 
-        // Tải footer
-        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    /**
+     * Action: Xóa sản phẩm khỏi giỏ hàng
+     * URL: (Link GET) index.php?controller=cart&action=remove&id=101
+     */
+    public function remove() {
+        $product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        
+        if (isset($_SESSION['cart'][$product_id])) {
+            unset($_SESSION['cart'][$product_id]);
+        }
+        
+        // Xóa xong, quay lại trang giỏ hàng
+        header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+        exit;
     }
 }
 ?>
