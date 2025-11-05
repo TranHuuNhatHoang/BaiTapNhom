@@ -65,6 +65,19 @@ class User {
         return false;
     }
 
+    
+        //HÀM MỚI: Lấy thông tin user bằng ID
+     
+    public function getUserById($id) {
+        $sql = "SELECT user_id, full_name, email, phone, address, province 
+                FROM users WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
 
 
 }

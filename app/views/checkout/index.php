@@ -1,0 +1,85 @@
+<h1>Thanh toán Đơn hàng</h1>
+
+<div style="display: flex; gap: 20px;">
+
+    <div style="flex: 2;">
+        <h3>Thông tin Giao hàng</h3>
+        <form method="POST" action="#">
+            
+            <div style="margin-bottom: 10px;">
+                <label for="full_name">Họ và Tên:</label><br>
+                <input type="text" id="full_name" name="full_name" required style="width: 100%;"
+                       value="<?php echo htmlspecialchars($user['full_name']); ?>">
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" required style="width: 100%;"
+                       value="<?php echo htmlspecialchars($user['email']); ?>">
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="phone">Số điện thoại:</label><br>
+                <input type="tel" id="phone" name="phone" required style="width: 100%;"
+                       value="<?php echo htmlspecialchars($user['phone']); ?>">
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="address">Địa chỉ:</label><br>
+                <input type="text" id="address" name="address" required style="width: 100%;"
+                       value="<?php echo htmlspecialchars($user['address']); ?>">
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <label for="province">Tỉnh/Thành phố:</label><br>
+                <input type="text" id="province" name="province" style="width: 100%;"
+                       value="<?php echo htmlspecialchars($user['province']); ?>">
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <label for="notes">Ghi chú (Tùy chọn):</label><br>
+                <textarea id="notes" name="notes" rows="3" style="width: 100%;"></textarea>
+            </div>
+            
+            <hr>
+            <h3>Phương thức Thanh toán</h3>
+            <div>
+                <input type="radio" id="cod" name="payment_method" value="cod" checked>
+                <label for="cod">Thanh toán khi nhận hàng (COD)</label>
+            </div>
+            <div>
+                <input type="radio" id="bank" name="payment_method" value="bank_transfer" disabled>
+                <label for="bank">(Sắp có) Chuyển khoản ngân hàng</label>
+            </div>
+
+            <button type="submit" style="padding: 15px; background-color: green; color: white; margin-top: 20px;">
+                (Tạm thời) Đặt hàng (sẽ làm ở bước sau)
+            </button>
+            
+        </form>
+    </div>
+
+    <div style="flex: 1; background-color: #f4f4f4; padding: 15px;">
+        <h3>Tóm tắt Đơn hàng</h3>
+        <hr>
+        
+        <?php foreach ($cart_items as $item): ?>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <img src="<?php echo BASE_URL; ?>public/images/<?php echo htmlspecialchars($item['main_image']); ?>" height="50">
+                <div>
+                    <?php echo htmlspecialchars($item['product_name']); ?><br>
+                    <small>Số lượng: <?php echo $item['quantity_in_cart']; ?></small>
+                </div>
+                <div style="margin-left: auto; font-weight: bold;">
+                    <?php echo number_format($item['price'] * $item['quantity_in_cart']); ?> VND
+                </div>
+            </div>
+        <?php endforeach; ?>
+        
+        <hr>
+        <h3 style="text-align: right;">
+            Tổng tiền: <span style="color: red;"><?php echo number_format($total_price); ?> VND</span>
+        </h3>
+    </div>
+
+</div>
