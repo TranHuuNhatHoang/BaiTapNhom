@@ -36,7 +36,16 @@
                 <td><?php echo htmlspecialchars($product['category_name']); ?></td>
                 <td><?php echo number_format($product['price']); ?></td>
                 <td><?php echo $product['quantity']; ?></td>
-                <td>(Sửa | Xóa)</td>
+                <td>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=edit&id=<?php echo $product['product_id']; ?>">
+        Sửa
+    </a> | 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=delete&id=<?php echo $product['product_id']; ?>" 
+       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');" 
+       style="color: red;">
+        Xóa
+    </a>
+</td>
             </tr>
             <?php endforeach; ?>
         <?php endif; ?>
