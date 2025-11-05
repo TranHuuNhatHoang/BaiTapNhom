@@ -59,5 +59,49 @@ class AuthController {
             }
         }
     }
+    // Action: Hiển thị form Đăng nhập 
+    public function login() {
+        // Tải view form đăng nhập
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/auth/login.php'; // Sẽ tạo ở bước 4
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+    // Action: Xử lý thông tin đăng nhập (từ form)
+    public function handleLogin() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'];
+            $password = $_POST['password'];
+
+            global $conn;
+            $userModel = new User($conn);
+
+            // Gọi hàm loginUser từ Model
+            $user = $userModel->loginUser($email, $password);
+
+            if ($user) {
+                // Đăng nhập THÀNH CÔNG
+                // Lưu thông tin user vào SESSION
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['user_full_name'] = $user['full_name'];
+                $_SESSION['user_role'] = $user['role'];
+
+                // Chuyển hướng về trang chủ
+                header("Location: " . BASE_URL);
+                exit;
+            } else {
+                // Đăng nhập THẤT BẠI
+                die("Email hoặc mật khẩu không đúng.");
+            }
+        }
+    }
+    //Action: Đăng xuất
+    public function logout() {
+        session_unset(); // Xóa tất cả biến session
+        session_destroy(); // Hủy session
+        
+        // Chuyển hướng về trang chủ
+        header("Location: " . BASE_URL);
+        exit;
+    }
 }
 ?>

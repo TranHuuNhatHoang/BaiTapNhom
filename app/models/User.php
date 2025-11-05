@@ -45,5 +45,27 @@ class User {
         // 4. Thực thi và trả về true/false
         return $stmt->execute();
     }
+     /*Hàm kiểm tra đăng nhập */
+     
+    public function loginUser($email, $password) {
+        // 1. Tìm user bằng email (dùng hàm đã có)
+        $user = $this->findUserByEmail($email);
+
+        // 2. Nếu tìm thấy user
+        if ($user) {
+            // 3. So sánh mật khẩu
+            // Dùng password_verify để so sánh mật khẩu người dùng nhập
+            // với mật khẩu đã băm (password_hash) trong CSDL
+            if (password_verify($password, $user['password_hash'])) {
+                // Khớp mật khẩu -> Trả về thông tin user
+                return $user;
+            }
+        }
+        // Không tìm thấy user hoặc sai mật khẩu
+        return false;
+    }
+
+
+
 }
 ?>
