@@ -4,7 +4,7 @@
 
     <div style="flex: 2;">
         <h3>Thông tin Giao hàng</h3>
-        <form method="POST" action="#">
+        <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=checkout&action=placeOrder">
             
             <div style="margin-bottom: 10px;">
                 <label for="full_name">Họ và Tên:</label><br>
@@ -21,19 +21,19 @@
             <div style="margin-bottom: 10px;">
                 <label for="phone">Số điện thoại:</label><br>
                 <input type="tel" id="phone" name="phone" required style="width: 100%;"
-                       value="<?php echo htmlspecialchars($user['phone']); ?>">
+                       value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>">
             </div>
             
             <div style="margin-bottom: 10px;">
                 <label for="address">Địa chỉ:</label><br>
                 <input type="text" id="address" name="address" required style="width: 100%;"
-                       value="<?php echo htmlspecialchars($user['address']); ?>">
+                       value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>">
             </div>
             
             <div style="margin-bottom: 10px;">
                 <label for="province">Tỉnh/Thành phố:</label><br>
                 <input type="text" id="province" name="province" style="width: 100%;"
-                       value="<?php echo htmlspecialchars($user['province']); ?>">
+                       value="<?php echo htmlspecialchars($user['province'] ?? ''); ?>">
             </div>
 
             <div style="margin-bottom: 10px;">
@@ -53,7 +53,7 @@
             </div>
 
             <button type="submit" style="padding: 15px; background-color: green; color: white; margin-top: 20px;">
-                (Tạm thời) Đặt hàng (sẽ làm ở bước sau)
+                 Xác nhận Đặt hàng
             </button>
             
         </form>
