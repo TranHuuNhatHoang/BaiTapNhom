@@ -4,22 +4,34 @@ require_once ROOT_PATH . '/app/models/Product.php';
 
 class ProductController {
 
+    /**
+     * CẬP NHẬT HÀM INDEX (cho Pagination)
+     */
     public function index() {
-        // 2. Lấy kết nối CSDL (biến $conn từ index.php)
         global $conn; 
-
-        // 3. Tạo một đối tượng Product Model
         $productModel = new Product($conn);
 
-        // 4. Gọi Model để lấy dữ liệu (Hàm này đã có JOIN)
-        $products = $productModel->getAllProducts();
+        // 1. Cài đặt Phân trang
+        $products_per_page = 6; // Số sản phẩm trên mỗi trang (Bạn có thể đổi số này)
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($current_page < 1) $current_page = 1;
 
-        // 5. Tải View
+        // 2. Lấy tổng số sản phẩm
+        $total_products = $productModel->countAllProducts();
+        
+        // 3. Tính tổng số trang
+        $total_pages = ceil($total_products / $products_per_page);
+        if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
+
+        // 4. Tính offset (vị trí bắt đầu)
+        $offset = ($current_page - 1) * $products_per_page;
+
+        // 5. Gọi Model để lấy dữ liệu (đã có limit, offset)
+        $products = $productModel->getAllProducts($products_per_page, $offset);
+
+        // 6. Tải View (truyền các biến $products, $total_pages, $current_page)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        
-        // Tải file View chính và "truyền" biến $products cho nó
         require_once ROOT_PATH . '/app/views/products/index.php';
-        
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
        public function detail() {

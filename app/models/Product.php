@@ -6,12 +6,25 @@ class Product {
     public function __construct($db_connection) {
         $this->conn = $db_connection;
     }
+    /**
+     * HÀM MỚI: Đếm tổng số sản phẩm
+     */
+    public function countAllProducts() {
+        $sql = "SELECT COUNT(product_id) as total FROM products";
+        $result = $this->conn->query($sql);
+        return $result->fetch_assoc()['total'];
+    }
 
     /**
      * 🧩 LẤY TẤT CẢ SẢN PHẨM (KÈM TÊN HÃNG VÀ DANH MỤC)
      * Dùng cho trang Admin và trang Sản phẩm
      */
-    public function getAllProducts() {
+    /**
+     * CẬP NHẬT HÀM NÀY: Sửa lại hàm getAllProducts
+     * (Thêm $limit và $offset)
+     */
+    public function getAllProducts($limit, $offset) {
+        
         $sql = "SELECT 
                     p.*, 
                     b.brand_name, 
@@ -23,11 +36,15 @@ class Product {
                 LEFT JOIN 
                     categories c ON p.category_id = c.category_id
                 ORDER BY 
-                    p.created_at DESC";
+                    p.created_at DESC
+                LIMIT ? OFFSET ?"; // <-- THÊM MỚI
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $limit, $offset); // 'i' = integer
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        $result = $this->conn->query($sql);
-
-        if ($result && $result->num_rows > 0) {
+        if ($result->num_rows > 0) {
             return $result->fetch_all(MYSQLI_ASSOC);
         } else {
             return [];
