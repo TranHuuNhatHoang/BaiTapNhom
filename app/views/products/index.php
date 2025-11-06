@@ -36,6 +36,33 @@
             <?php endforeach; ?>
 
         </div>
+        <div class="pagination" style="text-align: center; margin-top: 20px;">
+        <?php if ($total_pages > 1): ?>
+            
+            <?php if ($current_page > 1): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?page=<?php echo $current_page - 1; ?>">
+                    &laquo; Trước
+                </a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                <?php if ($i == $current_page): ?>
+                    <strong style="padding: 5px;"><?php echo $i; ?></strong>
+                <?php else: ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?page=<?php echo $i; ?>" style="padding: 5px;">
+                        <?php echo $i; ?>
+                    </a>
+                <?php endif; ?>
+            <?php endfor; ?>
+            
+            <?php if ($current_page < $total_pages): ?>
+                <a href="<?php echo BASE_URL; ?>index.php?page=<?php echo $current_page + 1; ?>">
+                    Sau &raquo;
+                </a>
+            <?php endif; ?>
+            
+        <?php endif; ?>
+    </div>
     <?php endif; ?>
 
 </div>
