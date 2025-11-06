@@ -78,10 +78,10 @@ class User {
         return $result->fetch_assoc();
     }
 
-    /**
-     * HÀM MỚI CỦA BẠN: Cập nhật thông tin (không đổi mật khẩu)
-     * (CSDL của bạn có 'phone', 'address', 'province')
-     */
+    
+     // HÀM MỚI CỦA BẠN: Cập nhật thông tin (không đổi mật khẩu)
+     
+    
     public function updateProfile($user_id, $full_name, $phone, $address, $province) {
         $sql = "UPDATE users SET full_name = ?, phone = ?, address = ?, province = ?
                 WHERE user_id = ?";
@@ -92,7 +92,31 @@ class User {
         return $stmt->execute();
     }
 
+    
+     // HÀM: Lấy Mật khẩu HASH để so sánh
+    public function getPasswordHashById($id) {
+        $sql = "SELECT password_hash FROM users WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 1) {
+            return $result->fetch_assoc()['password_hash'];
+        }
+        return null;
+    }
 
-
+    // HÀM : Cập nhật mật khẩu
+    public function updatePassword($id, $new_password) {
+        // Băm mật khẩu mới
+        $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+        
+        $sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("si", $new_hashed_password, $id);
+        
+        return $stmt->execute();
+    }
 }
 ?>
