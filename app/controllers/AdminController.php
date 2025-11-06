@@ -144,6 +144,68 @@ public function update() {
         // Tải view danh sách
         require_once ROOT_PATH . '/app/views/admin/order_list.php'; // Sẽ tạo ở bước 3
     }
+      public function listBrands() {
+        global $conn;
+        $brandModel = new Brand($conn);
+        $brands = $brandModel->getAllBrands();
+        require_once ROOT_PATH . '/app/views/admin/brand_list.php'; // Sẽ tạo
+    }
+
+    /**
+     * Action: Hiển thị form thêm Brand
+     */
+    public function createBrand() {
+        require_once ROOT_PATH . '/app/views/admin/brand_form.php'; // Sẽ tạo
+    }
+
+    /**
+     * Action: Xử lý lưu Brand mới
+     */
+    public function storeBrand() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            global $conn;
+            $brandModel = new Brand($conn);
+            $brandModel->createBrand($_POST['brand_name'], $_POST['description'], $_POST['logo']);
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listBrands");
+            exit;
+        }
+    }
+
+    /**
+     * Action: Hiển thị form sửa Brand
+     */
+    public function editBrand() {
+        $id = (int)$_GET['id'];
+        global $conn;
+        $brandModel = new Brand($conn);
+        $brand = $brandModel->getBrandById($id);
+        require_once ROOT_PATH . '/app/views/admin/brand_form.php'; // Dùng chung form
+    }
+
+    /**
+     * Action: Xử lý cập nhật Brand
+     */
+    public function updateBrand() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)$_POST['brand_id'];
+            global $conn;
+            $brandModel = new Brand($conn);
+            $brandModel->updateBrand($id, $_POST['brand_name'], $_POST['description'], $_POST['logo']);
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listBrands");
+            exit;
+        }
+    }
     
+    /**
+     * Action: Xử lý xóa Brand
+     */
+    public function deleteBrand() {
+        $id = (int)$_GET['id'];
+        global $conn;
+        $brandModel = new Brand($conn);
+        $brandModel->deleteBrand($id);
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listBrands");
+        exit;
+    }
 }
 ?>
