@@ -63,5 +63,53 @@ class AccountController {
             }
         }
     }
+
+     
+     // HÀM Hiển thị form Đổi mật khẩu
+     
+    public function changePassword() {
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/account/change_password.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+    
+     // HÀM Xử lý Đổi mật khẩu
+    
+    
+    public function handleChangePassword() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            global $conn;
+            $userModel = new User($conn);
+            
+            $user_id = $_SESSION['user_id'];
+            $old_password = $_POST['old_password'];
+            $new_password = $_POST['new_password'];
+            $confirm_password = $_POST['confirm_password'];
+            
+            // 1. Lấy mật khẩu cũ (đã băm)
+            $current_hash = $userModel->getPasswordHashById($user_id);
+            
+            // 2. So sánh mật khẩu cũ
+            if (!password_verify($old_password, $current_hash)) {
+                die("Lỗi: Mật khẩu cũ không đúng.");
+            }
+            
+            // 3. So sánh mật khẩu mới
+            if ($new_password !== $confirm_password) {
+                die("Lỗi: Mật khẩu mới không khớp.");
+            }
+            
+            // 4. Cập nhật mật khẩu mới
+            if ($userModel->updatePassword($user_id, $new_password)) {
+                // Đổi thành công, đá về trang tài khoản
+                echo "Đổi mật khẩu thành công!";
+                header("Refresh: 2; URL=" . BASE_URL . "index.php?controller=account&action=index");
+                exit;
+            } else {
+                die("Lỗi khi cập nhật mật khẩu.");
+            }
+        }
+    }
 }
 ?>
