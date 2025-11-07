@@ -10,6 +10,7 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 <nav>
     <ul>
         <li><a href="<?php echo BASE_URL; ?>">Trang chủ</a></li>
+        <li><a href="<?php echo BASE_URL; ?>index.php?controller=product&action=search">Tìm kiếm</a></li>
         
         <?php if (isset($_SESSION['user_id'])): ?>
             
