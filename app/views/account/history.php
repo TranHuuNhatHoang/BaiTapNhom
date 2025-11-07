@@ -9,7 +9,10 @@
         <?php else: ?>
             <?php foreach ($orders as $order): ?>
             <tr>
-                <td>#<?php echo $order['order_id']; ?></td>
+                <td>
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=orderDetail&id=<?php echo $order['order_id']; ?>">#<?php echo $order['order_id']; ?>
+                </a>
+            </td>
                 <td><?php echo date('d/m/Y H:i', strtotime($order['created_at'])); ?></td>
                 <td><?php echo number_format($order['total_amount']); ?> VND</td>
                 <td><?php echo htmlspecialchars($order['order_status']); ?></td>

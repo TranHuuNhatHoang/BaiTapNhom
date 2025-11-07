@@ -111,5 +111,31 @@ class AccountController {
             }
         }
     }
+    /**
+     * HÀM MỚI: Hiển thị Chi tiết 1 Đơn hàng
+     * URL: index.php?controller=account&action=orderDetail&id=123
+     */
+    public function orderDetail() {
+        $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $user_id = $_SESSION['user_id'];
+        
+        global $conn;
+        $orderModel = new Order($conn);
+        
+        // 1. Lấy thông tin đơn hàng (để kiểm tra xem có đúng của user này không)
+        $order = $orderModel->getOrderByIdAndUserId($order_id, $user_id);
+        
+        if (!$order) {
+            die("Không tìm thấy đơn hàng hoặc bạn không có quyền xem đơn hàng này.");
+        }
+        
+        // 2. Lấy chi tiết các sản phẩm trong đơn
+        $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
+        
+        // 3. Tải View (truyền $order và $order_details)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/account/order_detail.php'; // Sẽ tạo
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
 }
 ?>
