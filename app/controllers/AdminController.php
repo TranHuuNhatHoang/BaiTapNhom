@@ -10,13 +10,32 @@ class AdminController {
      * Action: Hiển thị danh sách sản phẩm (trang chính admin)
      * URL: index.php?controller=admin&action=index (hoặc admin)
      */
-    public function index() {
-        global $conn;
+     public function index() {
+        global $conn; 
         $productModel = new Product($conn);
-        $products = $productModel->getAllProducts();
+
+        // 1. Cài đặt Phân trang
+        $products_per_page = 6; // Số sản phẩm trên mỗi trang (Bạn có thể đổi số này)
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($current_page < 1) $current_page = 1;
+
+        // 2. Lấy tổng số sản phẩm
+        $total_products = $productModel->countAllProducts();
         
-        // Tải view danh sách
-        require_once ROOT_PATH . '/app/views/admin/product_list.php';
+        // 3. Tính tổng số trang
+        $total_pages = ceil($total_products / $products_per_page);
+        if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
+
+        // 4. Tính offset (vị trí bắt đầu)
+        $offset = ($current_page - 1) * $products_per_page;
+
+        // 5. Gọi Model để lấy dữ liệu (đã có limit, offset)
+        $products = $productModel->getAllProducts($products_per_page, $offset);
+
+        // 6. Tải View (truyền các biến $products, $total_pages, $current_page)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/products/index.php';
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
@@ -205,6 +224,72 @@ public function update() {
         $brandModel = new Brand($conn);
         $brandModel->deleteBrand($id);
         header("Location: " . BASE_URL . "index.php?controller=admin&action=listBrands");
+        exit;
+    }
+     /**
+     * Action: Hiển thị danh sách Categories
+     */
+    public function listCategories() {
+        global $conn;
+        $categoryModel = new Category($conn);
+        $categories = $categoryModel->getAllCategories();
+        require_once ROOT_PATH . '/app/views/admin/category_list.php'; // Sẽ tạo
+    }
+
+    /**
+     * Action: Hiển thị form thêm Category
+     */
+    public function createCategory() {
+        require_once ROOT_PATH . '/app/views/admin/category_form.php'; // Sẽ tạo
+    }
+
+    /**
+     * Action: Xử lý lưu Category mới
+     */
+    public function storeCategory() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            global $conn;
+            $categoryModel = new Category($conn);
+            $categoryModel->createCategory($_POST['category_name'], $_POST['description']);
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listCategories");
+            exit;
+        }
+    }
+
+    /**
+     * Action: Hiển thị form sửa Category
+     */
+    public function editCategory() {
+        $id = (int)$_GET['id'];
+        global $conn;
+        $categoryModel = new Category($conn);
+        $category = $categoryModel->getCategoryById($id);
+        require_once ROOT_PATH . '/app/views/admin/category_form.php'; // Dùng chung form
+    }
+
+    /**
+     * Action: Xử lý cập nhật Category
+     */
+    public function updateCategory() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $id = (int)$_POST['category_id'];
+            global $conn;
+            $categoryModel = new Category($conn);
+            $categoryModel->updateCategory($id, $_POST['category_name'], $_POST['description']);
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listCategories");
+            exit;
+        }
+    }
+    
+    /**
+     * Action: Xử lý xóa Category
+     */
+    public function deleteCategory() {
+        $id = (int)$_GET['id'];
+        global $conn;
+        $categoryModel = new Category($conn);
+        $categoryModel->deleteCategory($id);
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listCategories");
         exit;
     }
 }
