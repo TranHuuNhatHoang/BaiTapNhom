@@ -53,5 +53,43 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    /**
+     * HÀM MỚI: Lấy MỘT đơn hàng (để kiểm tra)
+     */
+    public function getOrderByIdAndUserId($order_id, $user_id) {
+        $sql = "SELECT * FROM orders WHERE order_id = ? AND user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $order_id, $user_id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    /**
+     * HÀM MỚI: Lấy CHI TIẾT của một đơn hàng
+     * (JOIN 3 bảng: order_details, products, brands)
+     */
+    public function getOrderDetailsByOrderId($order_id) {
+        $sql = "SELECT 
+                    od.quantity, 
+                    od.unit_price, 
+                    p.product_name, 
+                    p.main_image,
+                    b.brand_name
+                FROM 
+                    order_details od
+                JOIN 
+                    products p ON od.product_id = p.product_id
+                LEFT JOIN
+                    brands b ON p.brand_id = b.brand_id
+                WHERE 
+                    od.order_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>
