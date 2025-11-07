@@ -290,5 +290,28 @@ public function update() {
         header("Location: " . BASE_URL . "index.php?controller=admin&action=listCategories");
         exit;
     }
+
+      // HÀM: Xử lý Cập nhật Trạng thái Đơn hàng
+    
+    public function updateOrderStatus() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $order_id = (int)$_POST['order_id'];
+            $new_status = $_POST['new_status'];
+            
+            // ( Kiểm tra xem $new_status có hợp lệ không,
+            // ví dụ: 'pending', 'paid', 'shipped', 'completed', 'cancelled')
+            
+            global $conn;
+            $orderModel = new Order($conn);
+            
+            if ($orderModel->updateOrderStatus($order_id, $new_status)) {
+                // Cập nhật thành công, quay lại danh sách đơn hàng
+                header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
+                exit;
+            } else {
+                die("Lỗi khi cập nhật trạng thái đơn hàng.");
+            }
+        }
+    }
 }
 ?>
