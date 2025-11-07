@@ -136,5 +136,43 @@ class Product {
         
         return $stmt->execute();
     }
+
+    
+     // HÀM : Đếm kết quả tìm kiếm
+    
+    public function countSearchResults($query) {
+        $search_term = "%" . $query . "%";
+        $sql = "SELECT COUNT(product_id) as total FROM products WHERE product_name LIKE ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $search_term);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc()['total'];
+    }
+     // HÀM : Tìm sản phẩm theo Tên (có JOIN và Phân trang)
+     
+    public function searchProductsByName($query, $limit, $offset) {
+        $search_term = "%" . $query . "%"; // Thêm dấu % để tìm kiếm (LIKE)
+        $sql = "SELECT 
+                    p.*, 
+                    b.brand_name, 
+                    c.category_name
+                FROM 
+                    products p
+                LEFT JOIN 
+                    brands b ON p.brand_id = b.brand_id
+                LEFT JOIN 
+                    categories c ON p.category_id = c.category_id
+                WHERE
+                    p.product_name LIKE ?
+                ORDER BY 
+                    p.created_at DESC
+                LIMIT ? OFFSET ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("sii", $search_term, $limit, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>

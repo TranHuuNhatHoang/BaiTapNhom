@@ -32,10 +32,8 @@ class AdminController {
         // 5. Gọi Model để lấy dữ liệu (đã có limit, offset)
         $products = $productModel->getAllProducts($products_per_page, $offset);
 
-        // 6. Tải View (truyền các biến $products, $total_pages, $current_page)
-        require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/products/index.php';
-        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+        // Tải view danh sách
+        require_once ROOT_PATH . '/app/views/admin/product_list.php';
     }
 
     /**

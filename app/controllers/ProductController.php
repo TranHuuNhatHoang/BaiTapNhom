@@ -57,5 +57,46 @@ class ProductController {
         require_once ROOT_PATH . '/app/views/products/detail.php'; // Sẽ tạo ở bước 4
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
+    
+     // HÀM MỚI: Trang Tìm kiếm Sản phẩm
+    public function search() {
+        global $conn;
+        $productModel = new Product($conn);
+        
+        // Lấy từ khóa tìm kiếm từ URL
+        $query = isset($_GET['query']) ? trim($_GET['query']) : '';
+        
+        $products = [];
+        $total_pages = 0;
+        $current_page = 1;
+        $total_products = 0;
+
+        // Chỉ tìm kiếm nếu có từ khóa
+        if (!empty($query)) {
+            // 1. Cài đặt Phân trang
+            $products_per_page = 9;
+            $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            if ($current_page < 1) $current_page = 1;
+
+            // 2. Lấy tổng số sản phẩm TÌM ĐƯỢC
+            $total_products = $productModel->countSearchResults($query);
+            
+            // 3. Tính tổng số trang
+            $total_pages = ceil($total_products / $products_per_page);
+            if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
+
+            // 4. Tính offset
+            $offset = ($current_page - 1) * $products_per_page;
+
+            // 5. Gọi Model để lấy dữ liệu
+            $products = $productModel->searchProductsByName($query, $products_per_page, $offset);
+        }
+
+        // 6. Tải View (truyền các biến $products, $total_pages, $current_page, $query, $total_products)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/products/search.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
 }
 ?>
