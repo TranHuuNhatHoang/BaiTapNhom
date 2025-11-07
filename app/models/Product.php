@@ -174,5 +174,48 @@ class Product {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-}
+    /**
+     * HÀM MỚI : Đếm tổng số sản phẩm theo Danh mục
+     */
+    public function countProductsByCategory($category_id) {
+        $sql = "SELECT COUNT(product_id) as total FROM products WHERE category_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $category_id); // 'i' = integer
+        $stmt->execute();
+        
+        return $stmt->get_result()->fetch_assoc()['total'];
+    }
+
+    /**
+     * HÀM MỚI : Lấy sản phẩm theo Danh mục (có JOIN và Phân trang)
+     */
+    public function getProductsByCategory($category_id, $limit, $offset) {
+        $sql = "SELECT 
+                    p.*, 
+                    b.brand_name, 
+                    c.category_name
+                FROM 
+                    products p
+                LEFT JOIN 
+                    brands b ON p.brand_id = b.brand_id
+                LEFT JOIN 
+                    categories c ON p.category_id = c.category_id
+                WHERE
+                    p.category_id = ?
+                ORDER BY 
+                    p.created_at DESC
+                LIMIT ? OFFSET ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        // "iii" = integer (category_id), integer (limit), integer (offset)
+        $stmt->bind_param("iii", $category_id, $limit, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+} 
+
 ?>

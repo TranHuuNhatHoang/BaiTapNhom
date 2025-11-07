@@ -98,5 +98,56 @@ class ProductController {
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-}
+    // (Hàm 'index', 'detail', 'search' đã có ở trên)
+    // ...
+
+    /**
+     * HÀM MỚI (Người 2): Hiển thị sản phẩm theo Danh mục
+     * URL: index.php?controller=product&action=category&id=1
+     */
+    public function category() {
+        global $conn;
+        
+        // 1. Lấy ID Danh mục từ URL
+        $category_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($category_id <= 0) die("Danh mục không hợp lệ.");
+
+        // 2. Tải các Model cần thiết
+        $productModel = new Product($conn);
+        // (Kiểm tra class Category đã được require ở navbar chưa)
+        if (!class_exists('Category')) {
+            require_once ROOT_PATH . '/app/models/Category.php';
+        }
+        $categoryModel = new Category($conn);
+        
+        // 3. Lấy thông tin danh mục (để lấy tên)
+        $category = $categoryModel->getCategoryById($category_id);
+        if (!$category) die("Danh mục không tồn tại.");
+
+        // 4. Cài đặt Phân trang (Giống hệt hàm index/search)
+        $products_per_page = 9; // 9 sản phẩm/trang
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($current_page < 1) $current_page = 1;
+
+        // 5. Lấy tổng số sản phẩm TRONG DANH MỤC NÀY
+        $total_products = $productModel->countProductsByCategory($category_id);
+        
+        // 6. Tính tổng số trang
+        $total_pages = ceil($total_products / $products_per_page);
+        if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
+
+        // 7. Tính offset
+        $offset = ($current_page - 1) * $products_per_page;
+
+        // 8. Gọi Model để lấy dữ liệu
+        $products = $productModel->getProductsByCategory($category_id, $products_per_page, $offset);
+
+        // 9. Tải View (truyền tất cả các biến cần thiết)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/products/category.php'; // Sẽ tạo ở Bước 4
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+} // <-- Dấu } đóng class ProductController
+
 ?>
