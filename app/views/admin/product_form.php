@@ -14,8 +14,7 @@ $form_action = $is_edit_mode
 <a href="<?php echo BASE_URL; ?>index.php?controller=admin">Quay lại danh sách</a>
 <hr>
 
-<form method="POST" action="<?php echo $form_action; ?>">
-    
+<form method="POST" action="<?php echo $form_action; ?>" enctype="multipart/form-data">    
     <?php if ($is_edit_mode): ?>
         <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
     <?php endif; ?>
@@ -64,11 +63,16 @@ $form_action = $is_edit_mode
                value="<?php echo $is_edit_mode ? $product['quantity'] : '10'; ?>">
     </div>
     
-    <div style="margin-bottom: 10px;">
-        <label for="main_image">Tên file ảnh:</label><br>
-        <input type="text" id="main_image" name="main_image" placeholder="Vi du: dell-xps-9320.jpg"
-               value="<?php echo $is_edit_mode ? htmlspecialchars($product['main_image']) : ''; ?>">
-    </div>
+   <div style="margin-bottom: 10px;">
+    <label for="main_image">Ảnh đại diện:</label><br>
+    <input type="file" id="main_image" name="main_image">
+    
+    <?php if ($is_edit_mode && !empty($product['main_image'])): ?>
+        <br>
+        <img src="<?php echo BASE_URL; ?>public/uploads/<?php echo htmlspecialchars($product['main_image']); ?>" height="100">
+        <input type="hidden" name="current_main_image" value="<?php echo htmlspecialchars($product['main_image']); ?>">
+    <?php endif; ?>
+</div>
     
     <div style="margin-bottom: 10px;">
         <label for="description">Mô tả:</label><br>
