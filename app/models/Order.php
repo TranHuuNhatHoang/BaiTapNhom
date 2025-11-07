@@ -91,5 +91,15 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+
+    
+     // HÀM : Cập nhật trạng thái đơn hàng (cho Admin)
+     
+    public function updateOrderStatus($order_id, $new_status) {
+        $sql = "UPDATE orders SET order_status = ? WHERE order_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("si", $new_status, $order_id);
+        return $stmt->execute();
+    }
 }
 ?>
