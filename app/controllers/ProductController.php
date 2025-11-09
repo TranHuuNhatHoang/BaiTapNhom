@@ -151,7 +151,51 @@ class ProductController {
         require_once ROOT_PATH . '/app/views/products/category.php'; // Sẽ tạo ở Bước 4
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
+public function brand() {
+        global $conn;
+        
+        // 1. Lấy ID Thương hiệu từ URL
+        $brand_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($brand_id <= 0) die("Thương hiệu không hợp lệ.");
 
-} // <-- Dấu } đóng class ProductController
+        // 2. Tải các Model cần thiết
+        $productModel = new Product($conn);
+        // (Kiểm tra class Brand đã được require ở navbar chưa)
+        if (!class_exists('Brand')) {
+            require_once ROOT_PATH . '/app/models/Brand.php';
+        }
+        $brandModel = new Brand($conn);
+        
+        // 3. Lấy thông tin thương hiệu (để lấy tên)
+        $brand = $brandModel->getBrandById($brand_id);
+        if (!$brand) die("Thương hiệu không tồn tại.");
+
+        // 4. Cài đặt Phân trang (Copy logic từ hàm 'category')
+        $products_per_page = 9; // 9 sản phẩm/trang
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        
+        // 5. Lấy tổng số sản phẩm TRONG THƯƠNG HIỆU NÀY
+        $total_products = $productModel->countProductsByBrand($brand_id);
+        
+        // 6. Tính tổng số trang
+        $total_pages = ceil($total_products / $products_per_page);
+        if ($current_page < 1) $current_page = 1;
+        if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
+
+        // 7. Tính offset
+        $offset = ($current_page - 1) * $products_per_page;
+
+        // 8. Gọi Model để lấy dữ liệu
+        $products = $productModel->getProductsByBrand($brand_id, $products_per_page, $offset);
+
+        // 9. Tải View (truyền tất cả các biến cần thiết)
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/products/brand.php'; // Sẽ tạo ở Bước 4
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+    
+} 
+
 
 ?>

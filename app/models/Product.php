@@ -227,6 +227,45 @@ class Product {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+public function countProductsByBrand($brand_id) {
+        $sql = "SELECT COUNT(product_id) as total FROM products WHERE brand_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $brand_id); // 'i' = integer
+        $stmt->execute();
+        
+        return $stmt->get_result()->fetch_assoc()['total'];
+    }
+
+    /**
+     * HÀM MỚI (Người 2): Lấy sản phẩm theo Thương hiệu (có JOIN và Phân trang)
+     */
+    public function getProductsByBrand($brand_id, $limit, $offset) {
+        $sql = "SELECT 
+                    p.*, 
+                    b.brand_name, 
+                    c.category_name
+                FROM 
+                    products p
+                LEFT JOIN 
+                    brands b ON p.brand_id = b.brand_id
+                LEFT JOIN 
+                    categories c ON p.category_id = c.category_id
+                WHERE
+                    p.brand_id = ?
+                ORDER BY 
+                    p.created_at DESC
+                LIMIT ? OFFSET ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        // "iii" = integer (brand_id), integer (limit), integer (offset)
+        $stmt->bind_param("iii", $brand_id, $limit, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
 
 } 
 
