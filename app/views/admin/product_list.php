@@ -7,7 +7,7 @@
     </a>
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers"
       style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-         👨‍👩‍👧‍👦  Quản lý Người dùng
+        👨‍👩‍👧‍👦 Quản lý Người dùng
     </a>
 </div>
 <h2>Quản lý Sản phẩm</h2>
@@ -48,15 +48,19 @@
                 <td><?php echo number_format($product['price']); ?></td>
                 <td><?php echo $product['quantity']; ?></td>
                 <td>
-    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=edit&id=<?php echo $product['product_id']; ?>">
-        Sửa
-    </a> | 
-    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=delete&id=<?php echo $product['product_id']; ?>" 
-        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');" 
-        style="color: red;">
-        Xóa
-    </a>
-</td>
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=edit&id=<?php echo $product['product_id']; ?>">
+                        Sửa
+                    </a> | 
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=delete&id=<?php echo $product['product_id']; ?>" 
+                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');" 
+                       style="color: red;">
+                        Xóa
+                    </a> |
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=manageImages&product_id=<?php echo $product['product_id']; ?>" 
+                       style="color: blue; font-weight: bold;">
+                        Quản lý Ảnh
+                    </a>
+                </td>
             </tr>
             <?php endforeach; ?>
         <?php endif; ?>

@@ -5,7 +5,7 @@ require_once ROOT_PATH . '/app/models/Brand.php';
 require_once ROOT_PATH . '/app/models/Category.php';
 require_once ROOT_PATH . '/app/models/Order.php';
 require_once ROOT_PATH . '/app/models/User.php';
-
+require_once ROOT_PATH . '/app/models/ProductImage.php'; // 
 class AdminController {
 
     /**
@@ -467,6 +467,75 @@ public function store() {
         header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
         exit;
     }
+// ----- HÀM MỚI CHO QUẢN LÝ GALLERY (Người 3) -----
+
+    /**
+     * Action: Hiển thị trang Quản lý Ảnh
+     */
+    public function manageImages() {
+        $product_id = (int)$_GET['product_id'];
+        if ($product_id <= 0) die("ID sản phẩm không hợp lệ.");
+
+        global $conn;
+        $productModel = new Product($conn);
+        $product = $productModel->getProductById($product_id);
+        
+        $imageModel = new ProductImage($conn);
+        $images = $imageModel->getImagesByProductId($product_id);
+        
+        require_once ROOT_PATH . '/app/views/admin/product_images.php'; // Sẽ tạo
+    }
+    
+    /**
+     * Action: Xử lý Upload ảnh phụ
+     */
+    public function uploadImage() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $product_id = (int)$_POST['product_id'];
+            
+            // Dùng lại hàm 'handleUpload' (đã có từ GĐ trước)
+            $new_image_name = $this->handleUpload('product_image_file', '/public/uploads/');
+            
+            if ($product_id > 0 && $new_image_name) {
+                global $conn;
+                $imageModel = new ProductImage($conn);
+                $imageModel->addImage($product_id, $new_image_name);
+            }
+            
+            // Tải lại trang quản lý
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id);
+            exit;
+        }
+    }
+    
+    /**
+     * Action: Xử lý Xóa ảnh phụ
+     */
+    public function deleteImage() {
+        $image_id = (int)$_GET['image_id'];
+        $product_id = (int)$_GET['product_id']; // Để quay lại
+        
+        global $conn;
+        $imageModel = new ProductImage($conn);
+        
+        // (Nên xóa file ảnh trong /public/uploads/ ở đây)
+        // 1. Lấy thông tin ảnh
+        $image = $imageModel->getImageById($image_id);
+        if ($image) {
+            // 2. Xóa file
+            $file_path = ROOT_PATH . '/public/uploads/' . $image['image_url'];
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+            // 3. Xóa trong CSDL
+            $imageModel->deleteImage($image_id);
+        }
+        
+        // Tải lại trang quản lý
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id);
+        exit;
+    }
+
     
 }
 ?>
