@@ -351,5 +351,58 @@ public function store() {
     
     // *LƯU Ý QUAN TRỌNG: Các hàm store() và update() cũ đã được đổi tên thành storeProduct() và updateProduct().
     // Nếu Router của bạn vẫn mong đợi store/update, bạn cần tạo alias hoặc sửa Router.
+
+    /**
+     * HÀM MỚI: Xử lý Cập nhật Trạng thái Đơn hàng
+     * URL: (Form POST tới) index.php?controller=admin&action=updateOrderStatus
+     */
+    public function updateOrderStatus() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $order_id = (int)$_POST['order_id'];
+            $new_status = $_POST['new_status'];
+            
+            // (Bạn nên kiểm tra xem $new_status có hợp lệ không,
+            // ví dụ: 'pending', 'paid', 'shipped', 'completed', 'cancelled')
+            
+            global $conn;
+            $orderModel = new Order($conn);
+            
+            if ($orderModel->updateOrderStatus($order_id, $new_status)) {
+                // Cập nhật thành công, quay lại danh sách đơn hàng
+                header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
+                exit;
+            } else {
+                die("Lỗi khi cập nhật trạng thái đơn hàng.");
+            }
+        }
+    }
+
+    /**
+     * HÀM MỚI (Người 1): Admin xem Chi tiết 1 Đơn hàng
+     * URL: index.php?controller=admin&action=orderDetail&id=123
+     */
+    public function orderDetail() {
+        $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($order_id <= 0) die("ID đơn hàng không hợp lệ.");
+
+        global $conn;
+        
+        // Dùng Model Order (đã có)
+        $orderModel = new Order($conn);
+        
+        // 1. Lấy thông tin chính của đơn hàng
+        $order = $orderModel->getOrderByIdForAdmin($order_id); // Dùng hàm bạn vừa tạo
+        
+        if (!$order) {
+            die("Không tìm thấy đơn hàng.");
+        }
+        
+        // 2. Lấy chi tiết các sản phẩm trong đơn (dùng hàm đã có từ GĐ trước)
+        $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
+        
+        // 3. Tải View (truyền $order và $order_details)
+        require_once ROOT_PATH . '/app/views/admin/order_detail.php'; // Sẽ tạo ở Bước 5
+    }
+    
 }
 ?>
