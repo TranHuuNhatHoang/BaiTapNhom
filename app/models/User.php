@@ -153,5 +153,13 @@ class User {
         $stmt->bind_param("i", $user_id);
         return $stmt->execute();
     }
+    /**
+     * HÀM MỚI : Đếm user mới (ví dụ: đăng ký trong 7 ngày qua)
+     */
+    public function countNewUsers() {
+        $sql = "SELECT COUNT(user_id) as new_users FROM users WHERE created_at >= CURDATE() - INTERVAL 7 DAY";
+        $result = $this->conn->query($sql);
+        return $result->fetch_assoc()['new_users'];
+    }
 }
 ?>

@@ -116,5 +116,22 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
+    /**
+     * HÀM MỚI : Thống kê cho Dashboard
+     */
+    public function getOrderStats() {
+        // Lấy tổng doanh thu (chỉ tính đơn 'completed')
+        $sql_revenue = "SELECT SUM(total_amount) as total_revenue FROM orders WHERE order_status = 'completed'";
+        $revenue = $this->conn->query($sql_revenue)->fetch_assoc()['total_revenue'];
+        
+        // Đếm đơn hàng mới (chưa xử lý 'pending')
+        $sql_new_orders = "SELECT COUNT(order_id) as new_orders FROM orders WHERE order_status = 'pending'";
+        $new_orders = $this->conn->query($sql_new_orders)->fetch_assoc()['new_orders'];
+        
+        return [
+            'total_revenue' => $revenue ?? 0,
+            'new_orders' => $new_orders ?? 0
+        ];
+    }
 }
 ?>
