@@ -42,7 +42,25 @@ class AdminController {
      * Action: Hiển thị danh sách sản phẩm (trang chính admin)
      * URL: index.php?controller=admin&action=index (hoặc admin)
      */
+
+    /**
+ * HÀM INDEX MỚI (cho Dashboard)
+ */
     public function index() {
+        global $conn;
+
+        // 1. Lấy thống kê đơn hàng
+        $orderModel = new Order($conn);
+        $order_stats = $orderModel->getOrderStats();
+
+        // 2. Lấy thống kê user
+        $userModel = new User($conn);
+        $new_users = $userModel->countNewUsers();
+
+        // 3. Tải view dashboard
+        require_once ROOT_PATH . '/app/views/admin/dashboard.php';
+    }
+    public function listProducts() {
         global $conn; 
         $productModel = new Product($conn);
 
