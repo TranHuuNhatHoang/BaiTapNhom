@@ -47,6 +47,10 @@ class ProductController {
         $productModel = new Product($conn);
         $product = $productModel->getProductById($id);
 
+         //  THÊM MỚI  
+        $product_images = $productModel->getProductImages($id);
+        //  KẾT THÚC THÊM MỚI 
+
         // 3. Kiểm tra
         if (!$product) {
             die("Không tìm thấy sản phẩm.");

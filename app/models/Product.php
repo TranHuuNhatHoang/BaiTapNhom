@@ -216,6 +216,18 @@ class Product {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
+    
+     // HÀM : Lấy tất cả ảnh phụ của 1 sản phẩm
+     
+    public function getProductImages($product_id) {
+        $sql = "SELECT * FROM product_images WHERE product_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
 } 
 
 ?>

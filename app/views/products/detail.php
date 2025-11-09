@@ -4,9 +4,26 @@
 <div class="product-detail" style="display: flex;">
     
     <div style="flex: 1; padding: 20px;">
-        <img src="<?php echo BASE_URL; ?>public/images/<?php echo htmlspecialchars($product['main_image']); ?>" 
+        
+        <img id="main-product-image" 
+             src="<?php echo BASE_URL; ?>public/uploads/<?php echo htmlspecialchars($product['main_image']); ?>" 
              alt="<?php echo htmlspecialchars($product['product_name']); ?>" 
-             style="width: 100%;">
+             style="width: 100%; border: 1px solid #eee;">
+        
+        <div class="thumbnail-gallery" style="margin-top: 10px; display: flex; gap: 10px;">
+            
+            <img src="<?php echo BASE_URL; ?>public/uploads/<?php echo htmlspecialchars($product['main_image']); ?>" 
+                 alt="Thumbnail" 
+                 style="width: 80px; height: 80px; border: 2px solid blue; cursor: pointer;"
+                 onclick="document.getElementById('main-product-image').src=this.src;">
+
+            <?php foreach ($product_images as $image): ?>
+                <img src="<?php echo BASE_URL; ?>public/uploads/<?php echo htmlspecialchars($image['image_url']); ?>" 
+                     alt="Thumbnail" 
+                     style="width: 80px; height: 80px; border: 1px solid #ccc; cursor: pointer;"
+                     onclick="document.getElementById('main-product-image').src=this.src;">
+            <?php endforeach; ?>
+        </div>
     </div>
 
     <div style="flex: 1; padding: 20px;">
