@@ -4,6 +4,7 @@ require_once ROOT_PATH . '/app/models/Product.php';
 require_once ROOT_PATH . '/app/models/Brand.php';
 require_once ROOT_PATH . '/app/models/Category.php';
 require_once ROOT_PATH . '/app/models/Order.php';
+require_once ROOT_PATH . '/app/models/User.php';
 
 class AdminController {
 
@@ -402,6 +403,51 @@ public function store() {
         
         // 3. Tải View (truyền $order và $order_details)
         require_once ROOT_PATH . '/app/views/admin/order_detail.php'; // Sẽ tạo ở Bước 5
+    }
+
+     //  QUẢN LÝ USERS  
+     // Action: Hiển thị danh sách Users
+    public function listUsers() {
+        global $conn;
+        // Tải User Model 
+        $userModel = new User($conn);
+        $users = $userModel->getAllUsers();
+        // Tải view
+        require_once ROOT_PATH . '/app/views/admin/user_list.php'; 
+    }
+
+    
+     // Action: Xử lý cập nhật vai trò User
+    public function updateUserRole() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = (int)$_POST['user_id'];
+            $role = $_POST['role'];
+            // Ngăn admin tự thay đổi vai trò của chính mình
+            if ($user_id === $_SESSION['user_id']) {
+                 die("Không thể tự thay đổi vai trò của chính mình.");
+            } 
+            global $conn;
+            $userModel = new User($conn);
+            $userModel->updateUserRole($user_id, $role);
+            // Cập nhật xong, quay lại danh sách
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+            exit;
+        }
+    }
+    
+     // Action: Xử lý xóa User
+    public function deleteUser() {
+        $user_id = (int)$_GET['id'];
+        //  Ngăn admin tự xóa chính mình
+        if ($user_id === $_SESSION['user_id']) {
+             die("Không thể tự xóa chính mình.");
+        }
+        global $conn;
+        $userModel = new User($conn);
+        $userModel->deleteUser($user_id);
+        // Xóa xong, quay lại danh sách
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+        exit;
     }
     
 }

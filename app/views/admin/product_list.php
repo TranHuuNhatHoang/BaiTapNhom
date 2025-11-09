@@ -5,6 +5,10 @@
        style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
         📦 Quản lý Đơn hàng
     </a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers"
+      style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+         👨‍👩‍👧‍👦  Quản lý Người dùng
+    </a>
 </div>
 <h2>Quản lý Sản phẩm</h2>
 
