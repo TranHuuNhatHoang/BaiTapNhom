@@ -101,5 +101,20 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         $stmt->bind_param("si", $new_status, $order_id);
         return $stmt->execute();
     }
+    /**
+     * HÀM MỚI (Người 1): Lấy 1 đơn hàng (cho Admin, có JOIN User)
+     * (Hàm 'getOrderByIdAndUserId' đã có nhưng nó check user, không dùng cho admin được)
+     */
+    public function getOrderByIdForAdmin($order_id) {
+        $sql = "SELECT o.*, u.full_name, u.email 
+                FROM orders o 
+                LEFT JOIN users u ON o.user_id = u.user_id 
+                WHERE o.order_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $order_id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
 }
 ?>
