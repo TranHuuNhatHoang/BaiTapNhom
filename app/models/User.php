@@ -118,5 +118,40 @@ class User {
         
         return $stmt->execute();
     }
+
+    
+     // HÀM Lấy TẤT CẢ user (cho Admin)
+     // (Không lấy password_hash)
+     
+    public function getAllUsers() {
+        $sql = "SELECT user_id, full_name, email, phone, address, role, created_at FROM users
+                ORDER BY created_at DESC";
+        
+        $result = $this->conn->query($sql);
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    
+     // HÀM MỚI (Người 3): Cập nhật vai trò (Role)
+   
+    public function updateUserRole($user_id, $role) {
+        // Chỉ cho phép 2 vai trò 'user' hoặc 'admin'
+        if ($role !== 'user' && $role !== 'admin') {
+            return false;
+        }
+        $sql = "UPDATE users SET role = ? WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("si", $role, $user_id);
+        return $stmt->execute();
+    }
+
+     // HÀM Xóa user
+    public function deleteUser($user_id) {
+        //  Tác vụ này sẽ xóa user vĩnh viễn,nếu user còn có đơn hàng thì chỉ nên vô hiệu hóa
+        $sql = "DELETE FROM users WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        return $stmt->execute();
+    }
 }
 ?>
