@@ -14,3 +14,8 @@
     
     <button type="submit">Đăng nhập</button>
 </form>
+<p style="margin-top: 15px;">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=auth&action=forgotPassword">
+        Quên mật khẩu?
+    </a>
+</p>

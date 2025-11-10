@@ -103,5 +103,74 @@ class AuthController {
         header("Location: " . BASE_URL);
         exit;
     }
+
+     // HÀM Hiển thị form Quên mật khẩu
+     
+    public function forgotPassword() {
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/auth/forgot_password.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+    
+     // HÀM Xử lý Gửi link Reset
+    public function handleForgotPassword() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'];
+            global $conn;
+            $userModel = new User($conn);
+            $token = $userModel->generatePasswordResetToken($email);
+            
+            if ($token) {
+                // GIẢ LẬP GỬI EMAIL
+                // Trong dự án thật, bạn sẽ dùng thư viện PHPMailer
+                $reset_link = BASE_URL . "index.php?controller=auth&action=resetPassword&token=" . $token;
+                
+                echo "GỬI MAIL (Giả lập): Một link reset đã được gửi đến $email. <br>";
+                echo "Vui lòng nhấn vào link này để reset: <a href='$reset_link'>$reset_link</a>";
+            } else {
+                echo "Không tìm thấy email hoặc có lỗi. Vui lòng thử lại.";
+            }
+        }
+    }
+    
+    
+     // HÀM Hiển thị form Reset Mật khẩu
+     
+    public function resetPassword() {
+        $token = $_GET['token'] ?? '';
+        global $conn;
+        $userModel = new User($conn);
+        $user = $userModel->findUserByResetToken($token);
+        
+        if (!$user) {
+            die("Token không hợp lệ hoặc đã hết hạn.");
+        }
+        
+        // Truyền $token cho view
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/auth/reset_password.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+     // HÀM xử lý Đặt lại Mật khẩu
+     
+    public function handleResetPassword() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = $_POST['token'];
+            $new_password = $_POST['new_password'];
+            $confirm_password = $_POST['confirm_password'];
+            if ($new_password !== $confirm_password) {
+                die("Mật khẩu không khớp.");
+            } 
+            global $conn;
+            $userModel = new User($conn);
+            if ($userModel->updatePasswordByToken($token, $new_password)) {
+                echo "Cập nhật mật khẩu thành công!";
+                header("Refresh: 2; URL=" . BASE_URL . "index.php?controller=auth&action=login");
+                exit;
+            } else {
+                die("Lỗi: Token không hợp lệ hoặc đã hết hạn.");
+            }
+        }
+    }
 }
 ?>
