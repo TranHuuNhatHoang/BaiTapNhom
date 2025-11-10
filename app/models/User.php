@@ -161,5 +161,41 @@ class User {
         $result = $this->conn->query($sql);
         return $result->fetch_assoc()['new_users'];
     }
+
+    
+     // HÀM Tạo token reset
+    public function generatePasswordResetToken($email) {
+        $token = bin2hex(random_bytes(32)); // Tạo token ngẫu nhiên
+        $expires = date('Y-m-d H:i:s', time() + 3600); // Hết hạn sau 1 giờ
+        
+        $sql = "UPDATE users SET reset_token = ?, reset_expires = ? WHERE email = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("sss", $token, $expires, $email);
+        
+        if ($stmt->execute() && $stmt->affected_rows > 0) {
+            return $token; // Trả về token để (giả lập) gửi mail
+        }
+        return false;
+    }
+
+     // HÀM Tìm user bằng token (còn hạn)
+    public function findUserByResetToken($token) {
+        $sql = "SELECT * FROM users WHERE reset_token = ? AND reset_expires > NOW()";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $token);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+    
+     // HÀM Cập nhật mật khẩu bằng token
+    public function updatePasswordByToken($token, $new_password) {
+        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+        // Cập nhật mk VÀ xóa token
+        $sql = "UPDATE users SET password_hash = ?, reset_token = NULL, reset_expires = NULL 
+                WHERE reset_token = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ss", $hashed_password, $token);
+        return $stmt->execute();
+    }
 }
 ?>
