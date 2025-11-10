@@ -21,6 +21,14 @@ class ProductController {
         $price_range = isset($_GET['price']) ? $_GET['price'] : null; // <-- THÊM MỚI
         // --- KẾT THÚC ---
 
+        // --- THÊM MỚI (Người 2 - GĐ16) ---
+        // Chỉ lấy SP nổi bật khi không lọc/sắp xếp và ở trang 1
+        $featured_products = [];
+        if ($current_page == 1 && empty($price_range) && empty($_GET['sort'])) {
+            $featured_products = $productModel->getFeaturedProducts(4); // Lấy 4 SP
+        }
+        // --- KẾT THÚC THÊM MỚI ---
+
         // 2. Lấy tổng số sản phẩm (ĐÃ LỌC)
         $total_products = $productModel->countAllProducts($price_range); // <-- SỬA
         
