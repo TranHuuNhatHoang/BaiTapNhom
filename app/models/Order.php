@@ -133,5 +133,30 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
             'new_orders' => $new_orders ?? 0
         ];
     }
+/**
+     * HÀM MỚI (Người 1): Kiểm tra xem user đã mua SP này chưa
+     */
+    public function checkUserPurchase($user_id, $product_id) {
+        $sql = "SELECT 
+                    o.order_id
+                FROM 
+                    orders o
+                JOIN 
+                    order_details od ON o.order_id = od.order_id
+                WHERE 
+                    o.user_id = ? 
+                    AND od.product_id = ? 
+                    AND o.order_status = 'completed' -- Chỉ cho phép review khi đơn đã hoàn thành
+                LIMIT 1";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $user_id, $product_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->num_rows > 0; // Trả về true nếu tìm thấy (đã mua)
+    }
+
+
 }
 ?>
