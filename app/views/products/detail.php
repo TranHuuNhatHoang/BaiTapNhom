@@ -55,5 +55,61 @@
             <p>Đang cập nhật...</p>
         <?php endif; ?>
 
-    </div>
+        <hr>
+        <h3>Đánh giá Sản phẩm</h3>
+        <div class="reviews-list">
+            <?php
+            // Lấy reviews (Code này đáng lẽ nên ở Controller, 
+            // nhưng để tạm đây cho đơn giản)
+            global $conn;
+            if (!class_exists('Review')) {
+                require_once ROOT_PATH . '/app/models/Review.php';
+            }
+            $reviewModel = new Review($conn);
+            $reviews = $reviewModel->getReviewsByProductId($product['product_id']);
+            ?>
+            
+            <?php if (empty($reviews)): ?>
+                <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+            <?php else: ?>
+                <?php foreach ($reviews as $review): ?>
+                    <div style="border-bottom: 1px solid #eee; margin-bottom: 15px; padding-bottom: 10px;">
+                        <strong><?php echo htmlspecialchars($review['full_name']); ?></strong>
+                        <span style="color: orange; margin-left: 10px;">
+                            <?php echo str_repeat('★', $review['rating']); // Hiển thị 5 sao ?>
+                            <?php echo str_repeat('☆', 5 - $review['rating']); ?>
+                        </span>
+                        <p style="margin: 5px 0;"><?php echo htmlspecialchars($review['comment']); ?></p>
+                        <small style="color: #888;"><?php echo date('d/m/Y', strtotime($review['created_at'])); ?></small>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        
+        <hr>
+        <h4>Gửi đánh giá của bạn</h4>
+        <?php if (!isset($_SESSION['user_id'])): ?>
+            <p><a href="<?php echo BASE_URL; ?>index.php?controller=auth&action=login">Đăng nhập</a> để đánh giá.</p>
+        <?php else: ?>
+            <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=review&action=submit">
+                <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
+                <div>
+                    <label>Rating (sao):</label><br>
+                    <select name="rating" required>
+                        <option value="5">5 sao ★★★★★</option>
+                        <option value="4">4 sao ★★★★☆</option>
+                        <option value="3">3 sao ★★★☆☆</option>
+                        <option value="2">2 sao ★★☆☆☆</option>
+                        <option value="1">1 sao ★☆☆☆☆</option>
+                    </select>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label for="comment">Bình luận:</label><br>
+                    <textarea id="comment" name="comment" rows="4" style="width: 100%;"></textarea>
+                </div>
+                <button type="submit" style="margin-top: 10px;">Gửi đánh giá</button>
+            </form>
+        <?php endif; ?>
+        
+    </div> 
 </div>

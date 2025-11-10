@@ -7,6 +7,34 @@ class Review {
     }
 
     /**
+     * HÀM MỚI (Người 1): Lấy tất cả review của 1 SP (để hiển thị)
+     * (JOIN với 'users' để lấy tên)
+     */
+    public function getReviewsByProductId($product_id) {
+        $sql = "SELECT r.*, u.full_name 
+                FROM reviews r
+                JOIN users u ON r.user_id = u.user_id
+                WHERE r.product_id = ?
+                ORDER BY r.created_at DESC";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    /**
+     * HÀM MỚI (Người 1): Tạo 1 review mới
+     */
+    public function createReview($product_id, $user_id, $rating, $comment) {
+        $sql = "INSERT INTO reviews (product_id, user_id, rating, comment) 
+                VALUES (?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("iiis", $product_id, $user_id, $rating, $comment);
+        return $stmt->execute();
+    }
+    /**
      * HÀM MỚI (Người 1): Lấy tất cả review (JOIN để lấy tên user và SP)
      */
     public function getAllReviews() {
