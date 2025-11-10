@@ -48,7 +48,8 @@ class CheckoutController {
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
      
-     // Xử lý Đặt hàng (khi form POST tới)
+     
+     // Cập nhật hàm : Xử lý Đặt hàng (Thêm logic Trừ Tồn Kho)
      
     /**
      * CẬP NHẬT (Người 3): Xử lý Đặt hàng (Thêm logic Trừ Tồn Kho)
@@ -99,7 +100,6 @@ class CheckoutController {
 
         // BẮT ĐẦU TRANSACTION
         $conn->begin_transaction();
-
         try {
             // 3. Tạo Đơn hàng (Bảng 'orders')
             $orderModel = new Order($conn);
@@ -143,6 +143,8 @@ class CheckoutController {
             die("Đặt hàng thất bại: " . $e->getMessage());
         }
     }
+     
+    
     
      //  Hiển thị trang Cảm ơn
      
