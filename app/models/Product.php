@@ -286,6 +286,24 @@ class Product {
         }
         return $price_sql; // Trả về chuỗi SQL (hoặc "" nếu không lọc)
     }
+    /**
+     * HÀM MỚI (Người 2 - GĐ16): Lấy sản phẩm Nổi bật (is_featured = 1)
+     */
+    public function getFeaturedProducts($limit = 4) {
+        $sql = "SELECT p.*, b.brand_name, c.category_name
+                FROM products p
+                LEFT JOIN brands b ON p.brand_id = b.brand_id
+                LEFT JOIN categories c ON p.category_id = c.category_id
+                WHERE p.is_featured = 1
+                ORDER BY p.created_at DESC
+                LIMIT ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 
 } // <--- Dấu } đóng class Product
 ?>
