@@ -6,7 +6,8 @@
 <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Quản lý Thương hiệu</a> |
 <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Quản lý Danh mục</a> |
 <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders">Quản lý Đơn hàng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Quản lý Người dùng</a>
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Quản lý Người dùng</a> |
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews">Đánh giá</a>
 <hr>
 
 <h3>Thống kê Nhanh</h3>
