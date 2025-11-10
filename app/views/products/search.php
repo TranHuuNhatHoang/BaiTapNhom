@@ -1,4 +1,18 @@
 <h1>Tìm kiếm Sản phẩm</h1>
+<div style="margin-bottom: 20px; text-align: right;">
+        <form method="GET" action="<?php echo BASE_URL; ?>index.php">
+            <input type="hidden" name="controller" value="product">
+            <input type="hidden" name="action" value="search">
+            <input type="hidden" name="query" value="<?php echo htmlspecialchars($query ?? ''); ?>">
+            
+            <label for="sort">Sắp xếp theo:</label>
+            <select id="sort" name="sort" onchange="this.form.submit()">
+                <option value="created_at DESC" <?php echo ($sort ?? '') == 'created_at DESC' ? 'selected' : ''; ?>>Mới nhất</option>
+                <option value="price ASC" <?php echo ($sort ?? '') == 'price ASC' ? 'selected' : ''; ?>>Giá: Tăng dần</option>
+                <option value="price DESC" <?php echo ($sort ?? '') == 'price DESC' ? 'selected' : ''; ?>>Giá: Giảm dần</option>
+            </select>
+        </form>
+    </div>
 
 <form method="GET" action="<?php echo BASE_URL; ?>index.php">
     <input type="hidden" name="controller" value="product">

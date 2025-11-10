@@ -2,6 +2,20 @@
     
     <h1>Thương hiệu: <?php echo htmlspecialchars($brand['brand_name']); ?></h1>
     <p>Tìm thấy <?php echo $total_products; ?> sản phẩm.</p>
+    <div style="margin-bottom: 20px; text-align: right;">
+        <form method="GET" action="<?php echo BASE_URL; ?>index.php">
+            <input type="hidden" name="controller" value="product">
+            <input type="hidden" name="action" value="brand">
+            <input type="hidden" name="id" value="<?php echo $brand['brand_id']; ?>">
+            
+            <label for="sort">Sắp xếp theo:</label>
+            <select id="sort" name="sort" onchange="this.form.submit()">
+                <option value="created_at DESC" <?php echo ($sort ?? '') == 'created_at DESC' ? 'selected' : ''; ?>>Mới nhất</option>
+                <option value="price ASC" <?php echo ($sort ?? '') == 'price ASC' ? 'selected' : ''; ?>>Giá: Tăng dần</option>
+                <option value="price DESC" <?php echo ($sort ?? '') == 'price DESC' ? 'selected' : ''; ?>>Giá: Giảm dần</option>
+            </select>
+        </form>
+    </div>
     <hr>
     
     <?php if (empty($products)): ?>

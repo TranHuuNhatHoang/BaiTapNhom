@@ -26,10 +26,13 @@ class ProductController {
         // 4. Tính offset (vị trí bắt đầu)
         $offset = ($current_page - 1) * $products_per_page;
 
-        // 5. Gọi Model để lấy dữ liệu (đã có limit, offset)
-        $products = $productModel->getAllProducts($products_per_page, $offset);
+        // --- THÊM MỚI (Người 2) ---
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'created_at DESC';
 
-        // 6. Tải View (truyền các biến $products, $total_pages, $current_page)
+        // 5. Gọi Model (truyền thêm $sort)
+        $products = $productModel->getAllProducts($products_per_page, $offset, $sort);
+
+        // 6. Tải View (truyền thêm $sort)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/products/index.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
@@ -91,9 +94,11 @@ class ProductController {
 
             // 4. Tính offset
             $offset = ($current_page - 1) * $products_per_page;
+            // --- THÊM MỚI (Người 2) ---
+            $sort = isset($_GET['sort']) ? $_GET['sort'] : 'created_at DESC';
 
-            // 5. Gọi Model để lấy dữ liệu
-            $products = $productModel->searchProductsByName($query, $products_per_page, $offset);
+            // 5. Gọi Model (truyền thêm $sort)
+            $products = $productModel->searchProductsByName($query, $products_per_page, $offset, $sort);
         }
 
         // 6. Tải View (truyền các biến $products, $total_pages, $current_page, $query, $total_products)
@@ -143,8 +148,11 @@ class ProductController {
         // 7. Tính offset
         $offset = ($current_page - 1) * $products_per_page;
 
-        // 8. Gọi Model để lấy dữ liệu
-        $products = $productModel->getProductsByCategory($category_id, $products_per_page, $offset);
+        // --- THÊM MỚI (Người 2) ---
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'created_at DESC';
+
+        // 8. Gọi Model (truyền thêm $sort)
+        $products = $productModel->getProductsByCategory($category_id, $products_per_page, $offset, $sort);
 
         // 9. Tải View (truyền tất cả các biến cần thiết)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
@@ -184,9 +192,11 @@ public function brand() {
 
         // 7. Tính offset
         $offset = ($current_page - 1) * $products_per_page;
+        // --- THÊM MỚI (Người 2) ---
+        $sort = isset($_GET['sort']) ? $_GET['sort'] : 'created_at DESC';
 
-        // 8. Gọi Model để lấy dữ liệu
-        $products = $productModel->getProductsByBrand($brand_id, $products_per_page, $offset);
+        // Lấy dữ liệu (truyền thêm $sort)
+        $products = $productModel->getProductsByBrand($brand_id, $products_per_page, $offset, $sort);
 
         // 9. Tải View (truyền tất cả các biến cần thiết)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
