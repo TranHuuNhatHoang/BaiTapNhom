@@ -1,5 +1,22 @@
 <div class="product-list">
     <h1>Danh sách Sản phẩm</h1>
+
+    <div style="margin-bottom: 20px; text-align: right;">
+        <form method="GET" action="<?php echo BASE_URL; ?>index.php">
+            <label for="sort">Sắp xếp theo:</label>
+            <select id="sort" name="sort" onchange="this.form.submit()">
+                <option value="created_at DESC" <?php echo ($sort ?? '') == 'created_at DESC' ? 'selected' : ''; ?>>
+                    Mới nhất
+                </option>
+                <option value="price ASC" <?php echo ($sort ?? '') == 'price ASC' ? 'selected' : ''; ?>>
+                    Giá: Tăng dần
+                </option>
+                <option value="price DESC" <?php echo ($sort ?? '') == 'price DESC' ? 'selected' : ''; ?>>
+                    Giá: Giảm dần
+                </option>
+            </select>
+        </form>
+    </div>
     
     <?php if (empty($products)): ?>
         <p>Hiện chưa có sản phẩm nào.</p>
