@@ -50,9 +50,13 @@ class CheckoutController {
      
      // Xử lý Đặt hàng (khi form POST tới)
      
+    /**
+     * CẬP NHẬT (Người 3): Xử lý Đặt hàng (Thêm logic Trừ Tồn Kho)
+     */
     public function placeOrder() {
         global $conn;
 
+        // --- Bảo vệ (Giống hàm index) ---
         if (!isset($_SESSION['user_id'])) {
             header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
             exit;
@@ -63,31 +67,37 @@ class CheckoutController {
             exit;
         }
         
-        // 1. Lấy thông tin từ form
+        // 1. Lấy thông tin từ form (code cũ)
         $user_id = $_SESSION['user_id'];
         $shipping_address = $_POST['address'];
         $shipping_phone = $_POST['phone'];
         $notes = $_POST['notes'];
         $payment_method = $_POST['payment_method'];
         
-        // 2. Tính toán lại Tổng tiền (Không tin giá từ form)
-        $productModel = new Product($conn);
+        // 2. Tính toán lại Tổng tiền (code cũ)
+        $productModel = new Product($conn); // <-- Cần Model này
         $total_price = 0;
-        $products_in_cart = []; // Lưu lại sản phẩm để chèn vào order_details
+        $products_in_cart = [];
         
         foreach ($cart as $product_id => $quantity) {
-            $product = $productModel->getProductById($product_id); 
+            $product = $productModel->getProductById($product_id);
             if ($product) {
+                // KIỂM TRA TỒN KHO NGAY TỪ ĐẦU
+                if ($product['quantity'] < $quantity) {
+                    die("Lỗi: Sản phẩm '" . htmlspecialchars($product['product_name']) . "' chỉ còn " . $product['quantity'] . " cái. Vui lòng quay lại giỏ hàng.");
+                }
+                
                 $total_price += $product['price'] * $quantity;
                 $products_in_cart[] = [
                     'id' => $product_id,
+                    'name' => $product['product_name'], // Thêm tên để báo lỗi
                     'quantity' => $quantity,
                     'unit_price' => $product['price']
                 ];
             }
         }
 
-        
+        // BẮT ĐẦU TRANSACTION
         $conn->begin_transaction();
 
         try {
@@ -99,10 +109,25 @@ class CheckoutController {
 
             // 4. Tạo Chi tiết Đơn hàng (Bảng 'order_details')
             $orderDetailModel = new OrderDetail($conn);
-            foreach ($products_in_cart as $item) {
-                $orderDetailModel->createDetail($order_id, $item['id'], $item['quantity'], $item['unit_price']);
-            }
             
+            // --- CẬP NHẬT Ở ĐÂY (Người 3) ---
+            foreach ($products_in_cart as $item) {
+                
+                // 4a. Thêm chi tiết đơn hàng (code cũ)
+                $orderDetailModel->createDetail($order_id, $item['id'], $item['quantity'], $item['unit_price']);
+                
+                // 4b. TRỪ TỒN KHO (code mới)
+                $rows_affected = $productModel->decrementStock($item['id'], $item['quantity']);
+                
+                // 4c. Kiểm tra
+                if ($rows_affected <= 0) {
+                    // Nếu không trừ được (hết hàng), hủy toàn bộ đơn
+                    throw new Exception("Sản phẩm '" . htmlspecialchars($item['name']) . "' đã hết hàng trong quá trình bạn đặt.");
+                }
+            }
+            // --- KẾT THÚC CẬP NHẬT ---
+            
+            // 5. Nếu mọi thứ OK -> Commit
             $conn->commit();
             
             // 6. Xóa giỏ hàng
@@ -113,7 +138,7 @@ class CheckoutController {
             exit;
 
         } catch (Exception $e) {
-            // 8. Nếu có lỗi -> Rollback (Hủy bỏ)
+            // 8. Nếu có lỗi (kể cả lỗi hết hàng) -> Rollback
             $conn->rollback();
             die("Đặt hàng thất bại: " . $e->getMessage());
         }
