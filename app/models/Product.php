@@ -10,8 +10,12 @@ class Product {
     /**
      * HÀM MỚI (GĐ 12): Đếm tổng số sản phẩm
      */
-    public function countAllProducts() {
-        $sql = "SELECT COUNT(product_id) as total FROM products";
+    public function countAllProducts($price_range = null) {
+        $price_sql = $this->buildPriceFilterSql($price_range);
+        
+        // Phải thêm alias 'p' và 'WHERE 1=1'
+        $sql = "SELECT COUNT(p.product_id) as total FROM products p WHERE 1=1 $price_sql";
+        
         $result = $this->conn->query($sql);
         return $result->fetch_assoc()['total'];
     }
@@ -19,40 +23,29 @@ class Product {
     /**
      * CẬP NHẬT (NGƯỜI 2): LẤY TẤT CẢ SẢN PHẨM (Thêm $sort_order)
      */
-    public function getAllProducts($limit, $offset, $sort_order = 'created_at DESC') {
+    public function getAllProducts($limit, $offset, $sort_order = 'created_at DESC', $price_range = null) {
         
-        // 1. Whitelist (Danh sách trắng) để Sắp xếp an toàn (chống SQL Injection)
         $allowed_sorts = [
-            'created_at DESC' => 'created_at DESC', // Mới nhất
-            'price ASC' => 'price ASC',             // Giá tăng
-            'price DESC' => 'price DESC'            // Giá giảm
+            'created_at DESC' => 'created_at DESC', 'price ASC' => 'price ASC', 'price DESC' => 'price DESC'
         ];
-        $order_by = $allowed_sorts[$sort_order] ?? 'created_at DESC'; // Mặc định
+        $order_by = $allowed_sorts[$sort_order] ?? 'created_at DESC';
+        
+        // Lấy SQL lọc giá
+        $price_sql = $this->buildPriceFilterSql($price_range);
 
-        // 2. Câu SQL
-        $sql = "SELECT 
-                    p.*, 
-                    b.brand_name, 
-                    c.category_name
-                FROM 
-                    products p
-                LEFT JOIN 
-                    brands b ON p.brand_id = b.brand_id
-                LEFT JOIN 
-                    categories c ON p.category_id = c.category_id
-                ORDER BY $order_by -- Đã cập nhật
+        $sql = "SELECT p.*, b.brand_name, c.category_name
+                FROM products p
+                LEFT JOIN brands b ON p.brand_id = b.brand_id
+                LEFT JOIN categories c ON p.category_id = c.category_id
+                WHERE 1=1 $price_sql -- THÊM MỚI
+                ORDER BY $order_by 
                 LIMIT ? OFFSET ?";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("ii", $limit, $offset);
         $stmt->execute();
         $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            return $result->fetch_all(MYSQLI_ASSOC);
-        } else {
-            return [];
-        }
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 
     /**
@@ -120,9 +113,12 @@ class Product {
     /**
      * Đếm kết quả tìm kiếm
      */
-    public function countSearchResults($query) {
+    public function countSearchResults($query, $price_range = null) {
+        $price_sql = $this->buildPriceFilterSql($price_range);
         $search_term = "%" . $query . "%";
-        $sql = "SELECT COUNT(product_id) as total FROM products WHERE product_name LIKE ?";
+        
+        $sql = "SELECT COUNT(p.product_id) as total FROM products p WHERE p.product_name LIKE ? $price_sql";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("s", $search_term);
         $stmt->execute();
@@ -132,19 +128,18 @@ class Product {
     /**
      * CẬP NHẬT (NGƯỜI 2): Tìm sản phẩm theo Tên (Thêm $sort_order)
      */
-    public function searchProductsByName($query, $limit, $offset, $sort_order = 'created_at DESC') {
-        // 1. Whitelist
+    public function searchProductsByName($query, $limit, $offset, $sort_order = 'created_at DESC', $price_range = null) {
         $allowed_sorts = ['created_at DESC' => 'created_at DESC', 'price ASC' => 'price ASC', 'price DESC' => 'price DESC'];
         $order_by = $allowed_sorts[$sort_order] ?? 'created_at DESC';
-        
+        $price_sql = $this->buildPriceFilterSql($price_range);
         $search_term = "%" . $query . "%";
         
         $sql = "SELECT p.*, b.brand_name, c.category_name
                 FROM products p
                 LEFT JOIN brands b ON p.brand_id = b.brand_id
                 LEFT JOIN categories c ON p.category_id = c.category_id
-                WHERE p.product_name LIKE ?
-                ORDER BY $order_by -- Đã cập nhật
+                WHERE p.product_name LIKE ? $price_sql -- THÊM MỚI
+                ORDER BY $order_by
                 LIMIT ? OFFSET ?";
         
         $stmt = $this->conn->prepare($sql);
@@ -157,8 +152,11 @@ class Product {
     /**
      * Đếm tổng số sản phẩm theo Danh mục
      */
-    public function countProductsByCategory($category_id) {
-        $sql = "SELECT COUNT(product_id) as total FROM products WHERE category_id = ?";
+    public function countProductsByCategory($category_id, $price_range = null) {
+        $price_sql = $this->buildPriceFilterSql($price_range);
+        
+        $sql = "SELECT COUNT(p.product_id) as total FROM products p WHERE p.category_id = ? $price_sql";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $category_id);
         $stmt->execute();
@@ -168,17 +166,17 @@ class Product {
     /**
      * CẬP NHẬT (NGƯỜI 2): Lấy sản phẩm theo Danh mục (Thêm $sort_order)
      */
-    public function getProductsByCategory($category_id, $limit, $offset, $sort_order = 'created_at DESC') {
-        // 1. Whitelist
+    public function getProductsByCategory($category_id, $limit, $offset, $sort_order = 'created_at DESC', $price_range = null) {
         $allowed_sorts = ['created_at DESC' => 'created_at DESC', 'price ASC' => 'price ASC', 'price DESC' => 'price DESC'];
         $order_by = $allowed_sorts[$sort_order] ?? 'created_at DESC';
+        $price_sql = $this->buildPriceFilterSql($price_range);
 
         $sql = "SELECT p.*, b.brand_name, c.category_name
                 FROM products p
                 LEFT JOIN brands b ON p.brand_id = b.brand_id
                 LEFT JOIN categories c ON p.category_id = c.category_id
-                WHERE p.category_id = ?
-                ORDER BY $order_by -- Đã cập nhật
+                WHERE p.category_id = ? $price_sql -- THÊM MỚI
+                ORDER BY $order_by
                 LIMIT ? OFFSET ?";
         
         $stmt = $this->conn->prepare($sql);
@@ -203,8 +201,11 @@ class Product {
     /**
      * Đếm tổng số sản phẩm theo Thương hiệu
      */
-    public function countProductsByBrand($brand_id) {
-        $sql = "SELECT COUNT(product_id) as total FROM products WHERE brand_id = ?";
+    public function countProductsByBrand($brand_id, $price_range = null) {
+        $price_sql = $this->buildPriceFilterSql($price_range);
+        
+        $sql = "SELECT COUNT(p.product_id) as total FROM products p WHERE p.brand_id = ? $price_sql";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $brand_id);
         $stmt->execute();
@@ -214,17 +215,17 @@ class Product {
     /**
      * CẬP NHẬT (NGƯỜI 2): Lấy sản phẩm theo Thương hiệu (Thêm $sort_order)
      */
-    public function getProductsByBrand($brand_id, $limit, $offset, $sort_order = 'created_at DESC') {
-        // 1. Whitelist
+    public function getProductsByBrand($brand_id, $limit, $offset, $sort_order = 'created_at DESC', $price_range = null) {
         $allowed_sorts = ['created_at DESC' => 'created_at DESC', 'price ASC' => 'price ASC', 'price DESC' => 'price DESC'];
         $order_by = $allowed_sorts[$sort_order] ?? 'created_at DESC';
+        $price_sql = $this->buildPriceFilterSql($price_range);
 
         $sql = "SELECT p.*, b.brand_name, c.category_name
                 FROM products p
                 LEFT JOIN brands b ON p.brand_id = b.brand_id
                 LEFT JOIN categories c ON p.category_id = c.category_id
-                WHERE p.brand_id = ?
-                ORDER BY $order_by -- Đã cập nhật
+                WHERE p.brand_id = ? $price_sql -- THÊM MỚI
+                ORDER BY $order_by
                 LIMIT ? OFFSET ?";
         
         $stmt = $this->conn->prepare($sql);
@@ -233,19 +234,57 @@ class Product {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-    
-     // HÀM : Giảm số lượng tồn kho
+    /**
+     * HÀM MỚI (Người 3): Giảm số lượng tồn kho
+     *
+     * @param int $product_id ID sản phẩm cần trừ
+     * @param int $quantity_to_reduce Số lượng cần trừ
+     * @return int Số dòng bị ảnh hưởng (1 = thành công, 0 = thất bại/hết hàng)
+     */
     public function decrementStock($product_id, $quantity_to_reduce) {
-        // Trừ số lượng khỏi CSDL
-        // (UPDATE ... SET quantity = quantity - ?)
+        
+        // Câu SQL này đảm bảo 2 việc:
+        // 1. SET quantity = quantity - ? : Trừ số lượng tồn kho.
+        // 2. WHERE product_id = ? AND quantity >= ? :
+        //    Chỉ thực hiện việc trừ nếu SỐ LƯỢNG TỒN KHO (quantity)
+        //    LỚN HƠN HOẶC BẰNG số lượng khách mua.
+        
         $sql = "UPDATE products SET quantity = quantity - ? 
                 WHERE product_id = ? AND quantity >= ?";
-                // (Chỉ update nếu tồn kho >= số lượng mua)
+        
         $stmt = $this->conn->prepare($sql);
+        
+        // "iii" = integer, integer, integer
         $stmt->bind_param("iii", $quantity_to_reduce, $product_id, $quantity_to_reduce);
+        
         $stmt->execute();
-        // Trả về số dòng bị ảnh hưởng (1 là thành công, 0 là thất bại/hết hàng)
+        
+        // Trả về số dòng bị ảnh hưởng (affected_rows)
+        // Nếu thành công (trừ kho được), nó trả về 1.
+        // Nếu thất bại (hết hàng, quantity < $quantity_to_reduce), nó trả về 0.
         return $stmt->affected_rows;
+    }
+
+    /**
+     * HÀM HỖ TRỢ MỚI (Người 2): Xây dựng chuỗi SQL cho Lọc Giá
+     * Dùng 'p.price' vì các hàm JOIN đều dùng alias 'p'
+     */
+    private function buildPriceFilterSql($price_range) {
+        $price_sql = "";
+        
+        // Whitelist (Danh sách trắng) an toàn
+        switch ($price_range) {
+            case 'duoi-10':
+                $price_sql = " AND p.price < 10000000";
+                break;
+            case '10-20':
+                $price_sql = " AND p.price BETWEEN 10000000 AND 20000000";
+                break;
+            case 'tren-20':
+                $price_sql = " AND p.price > 20000000";
+                break;
+        }
+        return $price_sql; // Trả về chuỗi SQL (hoặc "" nếu không lọc)
     }
 
 } // <--- Dấu } đóng class Product

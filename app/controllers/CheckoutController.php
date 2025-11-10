@@ -51,9 +51,13 @@ class CheckoutController {
      
      // Cập nhật hàm : Xử lý Đặt hàng (Thêm logic Trừ Tồn Kho)
      
+    /**
+     * CẬP NHẬT (Người 3): Xử lý Đặt hàng (Thêm logic Trừ Tồn Kho)
+     */
     public function placeOrder() {
         global $conn;
 
+        // --- Bảo vệ (Giống hàm index) ---
         if (!isset($_SESSION['user_id'])) {
             header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
             exit;
@@ -64,15 +68,15 @@ class CheckoutController {
             exit;
         }
         
-        // 1. Lấy thông tin từ form 
+        // 1. Lấy thông tin từ form (code cũ)
         $user_id = $_SESSION['user_id'];
         $shipping_address = $_POST['address'];
         $shipping_phone = $_POST['phone'];
         $notes = $_POST['notes'];
         $payment_method = $_POST['payment_method'];
         
-        // 2. Tính toán lại Tổng tiền 
-        $productModel = new Product($conn); 
+        // 2. Tính toán lại Tổng tiền (code cũ)
+        $productModel = new Product($conn); // <-- Cần Model này
         $total_price = 0;
         $products_in_cart = [];
         
@@ -93,6 +97,7 @@ class CheckoutController {
                 ];
             }
         }
+
         // BẮT ĐẦU TRANSACTION
         $conn->begin_transaction();
         try {
@@ -104,17 +109,23 @@ class CheckoutController {
 
             // 4. Tạo Chi tiết Đơn hàng (Bảng 'order_details')
             $orderDetailModel = new OrderDetail($conn);
+            
+            // --- CẬP NHẬT Ở ĐÂY (Người 3) ---
             foreach ($products_in_cart as $item) {
-                // 4a. Thêm chi tiết đơn hàng 
+                
+                // 4a. Thêm chi tiết đơn hàng (code cũ)
                 $orderDetailModel->createDetail($order_id, $item['id'], $item['quantity'], $item['unit_price']);
-                // 4b. TRỪ TỒN KHO 
+                
+                // 4b. TRỪ TỒN KHO (code mới)
                 $rows_affected = $productModel->decrementStock($item['id'], $item['quantity']);
+                
                 // 4c. Kiểm tra
                 if ($rows_affected <= 0) {
                     // Nếu không trừ được (hết hàng), hủy toàn bộ đơn
                     throw new Exception("Sản phẩm '" . htmlspecialchars($item['name']) . "' đã hết hàng trong quá trình bạn đặt.");
                 }
             }
+            // --- KẾT THÚC CẬP NHẬT ---
             
             // 5. Nếu mọi thứ OK -> Commit
             $conn->commit();
