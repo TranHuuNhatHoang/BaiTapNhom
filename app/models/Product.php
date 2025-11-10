@@ -304,6 +304,27 @@ class Product {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    /**
+     * HÀM MỚI (Người 3 - GĐ16): Lấy sản phẩm Liên quan (cùng Category, trừ SP hiện tại)
+     */
+    public function getRelatedProducts($category_id, $current_product_id, $limit = 4) {
+        $sql = "SELECT p.*, b.brand_name, c.category_name
+                FROM products p
+                LEFT JOIN brands b ON p.brand_id = b.brand_id
+                LEFT JOIN categories c ON p.category_id = c.category_id
+                WHERE 
+                    p.category_id = ?       -- Cùng danh mục
+                    AND p.product_id != ?   -- Trừ sản phẩm đang xem
+                ORDER BY 
+                    RAND() -- Lấy ngẫu nhiên
+                LIMIT ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("iii", $category_id, $current_product_id, $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 
 } // <--- Dấu } đóng class Product
 ?>
