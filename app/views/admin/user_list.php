@@ -31,12 +31,10 @@
             <td><?php echo htmlspecialchars($user['phone'] ?? ''); ?></td>
             <td>
                 <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=admin&action=updateUserRole" style="margin: 0;">
-                    
                     <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
                     
                     <select name="role" 
-                        <?php echo $user['user_id'] == $_SESSION['user_id'] ? 'disabled' : ''; // Admin không thể đổi vai trò của chính mình ?>>
-                        
+                        <?php echo $user['user_id'] == $_SESSION['user_id'] ? 'disabled' : ''; ?>>
                         <option value="user" <?php echo $user['role'] == 'user' ? 'selected' : ''; ?>>User</option>
                         <option value="admin" <?php echo $user['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
                     </select>
@@ -47,10 +45,18 @@
                 </form>
             </td>
             <td><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
+
+            <!-- ĐÃ CẬP NHẬT THEO HƯỚNG DẪN -->
             <td>
+                <!-- THÊM MỚI: Link Sửa -->
+                <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=editUser&id=<?php echo $user['user_id']; ?>">
+                    Sửa
+                </a>
+
                 <?php if($user['user_id'] != $_SESSION['user_id']): ?>
+                    |
                     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=deleteUser&id=<?php echo $user['user_id']; ?>" 
-                       onclick="return confirm('Cảnh báo: Bạn có chắc muốn XÓA user này? (Tác vụ không thể hoàn tác)');" 
+                       onclick="return confirm('Bạn có chắc muốn XÓA user này?');" 
                        style="color: red;">
                         Xóa
                     </a>
@@ -58,6 +64,7 @@
                     (Bạn)
                 <?php endif; ?>
             </td>
+            <!-- HẾT PHẦN CẬP NHẬT -->
         </tr>
         <?php endforeach; ?>
     </tbody>

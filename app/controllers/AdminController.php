@@ -563,6 +563,47 @@ public function store() {
         header("Location: " . BASE_URL . "index.php?controller=admin&action=listReviews");
         exit;
     }
+      /**
+     * HÀM MỚI (Người 1 - GĐ16): Hiển thị form Sửa User
+     * URL: index.php?controller=admin&action=editUser&id=123
+     */
+    public function editUser() {
+        $user_id = (int)$_GET['id'];
+        if ($user_id <= 0) die("ID không hợp lệ.");
+        
+        global $conn;
+        $userModel = new User($conn);
+        $user = $userModel->getUserById($user_id); // Dùng hàm đã có
+        
+        if (!$user) die("Không tìm thấy user.");
+
+        require_once ROOT_PATH . '/app/views/admin/user_form.php'; // Sẽ tạo
+    }
     
+    /**
+     * HÀM MỚI (Người 1 - GĐ16): Xử lý Cập nhật User
+     * URL: (Form POST tới) index.php?controller=admin&action=updateUser
+     */
+    public function updateUser() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = (int)$_POST['user_id'];
+            $full_name = $_POST['full_name'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $address = $_POST['address'];
+            $province = $_POST['province'];
+            $role = $_POST['role'];
+
+            // (Bạn có thể thêm kiểm tra an toàn, ví dụ: không cho đổi email
+            // hoặc không cho đổi vai trò của admin cuối cùng)
+
+            global $conn;
+            $userModel = new User($conn);
+            $userModel->adminUpdateUser($user_id, $full_name, $email, $phone, $address, $province, $role);
+            
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+            exit;
+        }
+    }
 }
 ?>

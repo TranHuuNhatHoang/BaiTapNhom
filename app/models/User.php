@@ -197,5 +197,18 @@ class User {
         $stmt->bind_param("ss", $hashed_password, $token);
         return $stmt->execute();
     }
+    /**
+     * HÀM MỚI (Người 1 - GĐ16): Admin cập nhật thông tin user
+     */
+    public function adminUpdateUser($user_id, $full_name, $email, $phone, $address, $province, $role) {
+        $sql = "UPDATE users SET 
+                    full_name = ?, email = ?, phone = ?, address = ?, province = ?, role = ?
+                WHERE user_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssssssi", $full_name, $email, $phone, $address, $province, $role, $user_id);
+        
+        return $stmt->execute();
+    }
 }
 ?>
