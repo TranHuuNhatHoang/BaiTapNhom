@@ -72,7 +72,13 @@ class ProductController {
         if (!$product) {
             die("Không tìm thấy sản phẩm.");
         }
-
+        
+        // Lấy sản phẩm liên quan (dựa trên category_id của SP hiện tại)
+        $related_products = [];
+        if (isset($product['category_id'])) {
+             $related_products = $productModel->getRelatedProducts($product['category_id'], $id, 4);
+        }
+       
         // 4. Tải View (truyền biến $product cho view)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/products/detail.php';

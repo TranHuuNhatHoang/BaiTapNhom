@@ -113,3 +113,32 @@
         
     </div> 
 </div>
+
+<!-- 
+
+ THÊM MỚI (Người 3 - GĐ16): Sản phẩm Liên quan
+
+-->
+<?php if (isset($related_products) && !empty($related_products)): ?>
+<div class="related-products" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #007bff;">
+    <h2 style="color: #007bff;">Sản phẩm Liên quan</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+        <?php foreach ($related_products as $related_product): ?>
+            <!-- (Đây là code hiển thị 1 SP, copy từ index.php) -->
+            <div class="product-item" style="border: 1px solid #ccc; padding: 10px;">
+                <img src="<?php echo BASE_URL; ?>public/uploads/<?php echo htmlspecialchars($related_product['main_image']); ?>" 
+                     alt="<?php echo htmlspecialchars($related_product['product_name']); ?>" 
+                     style="width: 100%; height: auto;">
+                <small style="color: #555;"><?php echo htmlspecialchars($related_product['brand_name']); ?></small>
+                <h3 style="margin: 5px 0; font-size: 1em;"><?php echo htmlspecialchars($related_product['product_name']); ?></h3>
+                <p style="color: red; font-weight: bold; margin: 5px 0;">
+                    <?php echo number_format($related_product['price']); ?> VND
+                </p>
+                <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=detail&id=<?php echo $related_product['product_id']; ?>">
+                    Xem chi tiết</a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+<!-- KẾT THÚC THÊM MỚI -->
