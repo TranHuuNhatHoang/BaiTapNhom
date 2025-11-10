@@ -1,7 +1,12 @@
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
 <h2>Quản lý Đơn hàng</h2>
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin">Quản lý Sản phẩm</a>
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Quản lý Người dùng</a>
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin">Tổng quan</a> | 
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts">Sản phẩm</a> | 
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Thương hiệu</a> |
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Danh mục</a> |
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" style="font-weight: bold;">Đơn hàng</a> |
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Người dùng</a> |
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews">Đánh giá</a>
 <hr>
 
 <table border="1" style="width: 100%; border-collapse: collapse;">

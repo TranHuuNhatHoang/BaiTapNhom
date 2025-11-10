@@ -1,14 +1,13 @@
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
 
 <div style="margin-bottom: 20px;">
-    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" 
-       style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        📦 Quản lý Đơn hàng
-    </a>
-    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers"
-      style="background-color: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        👨‍👩‍👧‍👦 Quản lý Người dùng
-    </a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin" style="font-weight: bold;">Tổng quan</a> | 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" style="font-weight: bold;">Sản phẩm</a> | 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Thương hiệu</a> |
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Danh mục</a> |
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders">Đơn hàng</a> |
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Người dùng</a> |
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews">Đánh giá</a>
 </div>
 <h2>Quản lý Sản phẩm</h2>
 

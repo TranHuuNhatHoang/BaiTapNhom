@@ -6,6 +6,7 @@ require_once ROOT_PATH . '/app/models/Category.php';
 require_once ROOT_PATH . '/app/models/Order.php';
 require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/ProductImage.php'; // 
+require_once ROOT_PATH . '/app/models/Review.php';
 class AdminController {
 
     /**
@@ -535,7 +536,33 @@ public function store() {
         header("Location: " . BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id);
         exit;
     }
+/**
+     * Action: Hiển thị danh sách Reviews
+     * URL: index.php?controller=admin&action=listReviews
+     */
+    public function listReviews() {
+        global $conn;
+        $reviewModel = new Review($conn);
+        $reviews = $reviewModel->getAllReviews();
+        
+        require_once ROOT_PATH . '/app/views/admin/review_list.php'; // Sẽ tạo
+    }
+    
+    /**
+     * Action: Xử lý Xóa Review
+     * URL: (Link GET) index.php?controller=admin&action=deleteReview&id=123
+     */
+    public function deleteReview() {
+        $review_id = (int)$_GET['id'];
 
+        global $conn;
+        $reviewModel = new Review($conn);
+        $reviewModel->deleteReview($review_id);
+        
+        // Xóa xong, quay lại danh sách
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listReviews");
+        exit;
+    }
     
 }
 ?>
