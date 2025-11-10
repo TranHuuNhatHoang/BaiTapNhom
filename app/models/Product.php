@@ -233,6 +233,20 @@ class Product {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    
+     // HÀM : Giảm số lượng tồn kho
+    public function decrementStock($product_id, $quantity_to_reduce) {
+        // Trừ số lượng khỏi CSDL
+        // (UPDATE ... SET quantity = quantity - ?)
+        $sql = "UPDATE products SET quantity = quantity - ? 
+                WHERE product_id = ? AND quantity >= ?";
+                // (Chỉ update nếu tồn kho >= số lượng mua)
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("iii", $quantity_to_reduce, $product_id, $quantity_to_reduce);
+        $stmt->execute();
+        // Trả về số dòng bị ảnh hưởng (1 là thành công, 0 là thất bại/hết hàng)
+        return $stmt->affected_rows;
+    }
 
 } // <--- Dấu } đóng class Product
 ?>
