@@ -58,3 +58,52 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
+
+// (Code Live Search của GĐ 17 ở trên...)
+
+/**
+ * HÀM MỚI (Người 2 - GĐ19): Xử lý AJAX "Thêm vào giỏ"
+ */
+function initializeAjaxCartForms() {
+    // 1. Tìm TẤT CẢ các form "Thêm vào giỏ"
+    const cartForms = document.querySelectorAll('form[action*="controller=cart&action=add"]');
+    
+    // 2. Lặp qua từng form
+    cartForms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            // 3. Ngăn form gửi đi (ngăn tải lại trang)
+            event.preventDefault(); 
+            
+            const formData = new FormData(this);
+            const product_id = formData.get('product_id');
+            const quantity = formData.get('quantity');
+            
+            // 4. Gửi yêu cầu AJAX
+            fetch(`index.php?controller=cart&action=add&product_id=${product_id}&quantity=${quantity}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 5. CẬP NHẬT SỐ LƯỢNG TRÊN NAVBAR
+                        // (Giả sử navbar có 1 id="cart-count")
+                        const cartCountElement = document.getElementById('cart-count');
+                        if (cartCountElement) {
+                            cartCountElement.innerText = data.cart_count;
+                        }
+                        // (Bạn có thể thêm 1 thông báo "Đã thêm!" ở đây)
+                    } else {
+                        alert(data.message); // Báo lỗi
+                    }
+                })
+                .catch(error => console.error('Lỗi AJAX Cart:', error));
+        });
+    });
+}
+
+// Gọi hàm này khi trang tải xong
+// (Gộp nó vào DOMContentLoaded nếu bạn đã có)
+document.addEventListener("DOMContentLoaded", function() {
+    // (Code Live Search của bạn...)
+    
+    // Gọi hàm mới
+    initializeAjaxCartForms();
+});

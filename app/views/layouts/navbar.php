@@ -108,9 +108,9 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
         
         <!-- Giỏ hàng (Đẩy sang phải) -->
         <li style="margin-left: auto;">
-            <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=index">
-                Giỏ hàng (<span id="cart-count"><?php echo $cart_count; ?></span>)
-            </a>
+           <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=index">
+             Giỏ hàng (<span id="cart-count"><?php echo $cart_count; ?></span>)
+           </a>
         </li>
         
         <!-- Logic Đăng nhập / Tài khoản -->

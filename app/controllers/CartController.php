@@ -62,27 +62,43 @@ class CartController {
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * Action: Thêm vào giỏ hàng (đã làm)
+   /**
+     * CẬP NHẬT (Người 2 - GĐ19): Thêm vào giỏ hàng (AJAX)
+     * Trả về JSON thay vì Redirect
      */
     public function add() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $product_id = $_POST['product_id'];
-            $quantity = (int)$_POST['quantity'];
-            
-            if ($quantity <= 0) $quantity = 1;
-            if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
-
-            if (isset($_SESSION['cart'][$product_id])) {
-                $_SESSION['cart'][$product_id] += $quantity;
-            } else {
-                $_SESSION['cart'][$product_id] = $quantity;
-            }
-            
-            // Chuyển đến trang giỏ hàng
-            header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+        // (Chúng ta không cần kiểm tra POST, vì AJAX có thể dùng GET/POST)
+        
+        $product_id = $_POST['product_id'] ?? $_GET['product_id'] ?? 0;
+        $quantity = (int)($_POST['quantity'] ?? $_GET['quantity'] ?? 1);
+        
+        if ($quantity <= 0) $quantity = 1;
+        if ($product_id <= 0) {
+            // Trả về lỗi
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Sản phẩm không hợp lệ.']);
             exit;
         }
+
+        if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+
+        if (isset($_SESSION['cart'][$product_id])) {
+            $_SESSION['cart'][$product_id] += $quantity;
+        } else {
+            $_SESSION['cart'][$product_id] = $quantity;
+        }
+        
+        // Tính tổng số lượng mới
+        $cart_count = array_sum($_SESSION['cart']);
+        
+        // Trả về JSON thành công
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Đã thêm vào giỏ hàng!',
+            'cart_count' => $cart_count
+        ]);
+        exit;
     }
 
     /**
