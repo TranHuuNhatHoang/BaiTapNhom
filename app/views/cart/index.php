@@ -45,13 +45,45 @@
         </tbody>
     </table>
 
-    <div style="text-align: right; margin-top: 20px;">
-        <h2>Tổng tiền: <span style="color: red;"><?php echo number_format($total_price); ?> VND</span></h2>
+    <!-- CẬP NHẬT (Người 3): Thêm Form Coupon và Tổng tiền mới -->
+    <div style="display: flex; justify-content: space-between; margin-top: 20px;">
         
-        <a href="<?php echo BASE_URL; ?>index.php?controller=checkout&action=index" 
-           style="background-color: blue; color: white; padding: 15px; text-decoration: none;">
-            Tiến hành Thanh toán
-        </a>
+        <!-- Cột trái: Form Mã giảm giá -->
+        <div>
+            <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=cart&action=applyCoupon">
+                <label for="coupon_code">Mã giảm giá:</label><br>
+                <input type="text" id="coupon_code" name="coupon_code" 
+                       value="<?php echo htmlspecialchars($coupon_code ?? ''); ?>" 
+                       placeholder="Nhập mã...">
+                <!-- Gửi tổng tiền để tính % -->
+                <input type="hidden" name="total_price" value="<?php echo $total_price; ?>">
+                <button type="submit">Áp dụng</button>
+            </form>
+        </div>
+        
+        <!-- Cột phải: Chi tiết Tổng tiền -->
+        <div style="text-align: right;">
+            <h4>Tổng tiền hàng: <?php echo number_format($total_price); ?> VND</h4>
+            
+            <?php if (isset($coupon_code) && $discount_amount > 0): ?>
+                <h4 style="color: green;">
+                    Giảm giá (<?php echo htmlspecialchars($coupon_code); ?>): 
+                    -<?php echo number_format($discount_amount); ?> VND
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=removeCoupon" 
+                       style="color: red; text-decoration: none;">[Xóa]</a>
+                </h4>
+            <?php endif; ?>
+            
+            <h2 style="margin-top: 10px;">
+                Tổng thanh toán: 
+                <span style="color: red;"><?php echo number_format($final_price); ?> VND</span>
+            </h2>
+            
+            <a href="<?php echo BASE_URL; ?>index.php?controller=checkout&action=index" 
+               style="background-color: blue; color: white; padding: 15px; text-decoration: none; margin-top: 10px; display: inline-block;">
+                Tiến hành Thanh toán
+            </a>
+        </div>
     </div>
 
 <?php endif; ?>
