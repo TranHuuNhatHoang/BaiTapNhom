@@ -208,5 +208,28 @@ class User {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    /**
+     * HÀM BỊ THIẾU (Giai đoạn 19 - Người 3): Cập nhật Avatar
+     */
+    public function updateAvatar($user_id, $avatar_filename) {
+        $sql = "UPDATE users SET avatar = ? WHERE user_id = ?";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("si", $avatar_filename, $user_id);
+        return $stmt->execute();
+    }
+    /**
+     * HÀM MỚI (để sửa lỗi): Admin cập nhật thông tin user
+     */
+    public function adminUpdateUser($user_id, $full_name, $email, $phone, $address, $province, $role) {
+        $sql = "UPDATE users SET 
+                    full_name = ?, email = ?, phone = ?, address = ?, province = ?, role = ?
+                WHERE user_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        // "ssssssi" = 6 string, 1 integer
+        $stmt->bind_param("ssssssi", $full_name, $email, $phone, $address, $province, $role, $user_id);
+        
+        return $stmt->execute();
+    }
 }
 ?>

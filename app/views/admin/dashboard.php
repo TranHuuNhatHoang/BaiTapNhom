@@ -10,32 +10,42 @@
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
 <h2>Tổng quan (Dashboard)</h2>
 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin" style="font-weight: bold;">Tổng quan</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts">Quản lý Sản phẩm</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Quản lý Thương hiệu</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Quản lý Danh mục</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders">Quản lý Đơn hàng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Quản lý Người dùng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews">Đánh giá</a>
+<!-- 
+============================================================
+ CẬP NHẬT (Người 3): Áp dụng class .btn cho thanh Nav Admin
+============================================================
+-->
+<div class="admin-nav" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin" class="btn btn-primary">Tổng quan</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" class="btn btn-secondary">Quản lý Sản phẩm</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands" class="btn btn-secondary">Quản lý Thương hiệu</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories" class="btn btn-secondary">Quản lý Danh mục</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" class="btn btn-secondary">Quản lý Đơn hàng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers" class="btn btn-secondary">Quản lý Người dùng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews" class="btn btn-secondary">Đánh giá</a>
+</div>
 <hr>
+<!-- KẾT THÚC CẬP NHẬT -->
+
 
 <h3>Thống kê Nhanh</h3>
-<div style="display: flex; gap: 20px;">
-    <div style="border: 1px solid #ccc; padding: 20px; background: #f9f9f9;">
+<!-- (Giữ lại style inline cho các box thống kê tùy chỉnh này) -->
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+    <div style="flex: 1; min-width: 200px; border: 1px solid #ccc; padding: 20px; background: #f9f9f9; border-radius: 5px;">
         <h4>Tổng Doanh thu</h4>
         <p style="font-size: 24px; color: green; margin: 0;">
             <?php echo number_format($order_stats['total_revenue']); ?> VND
         </p>
         <small>(Chỉ tính các đơn đã Hoàn thành)</small>
     </div>
-    <div style="border: 1px solid #ccc; padding: 20px; background: #f9f9f9;">
+    <div style="flex: 1; min-width: 200px; border: 1px solid #ccc; padding: 20px; background: #f9f9f9; border-radius: 5px;">
         <h4>Đơn hàng mới</h4>
         <p style="font-size: 24px; color: orange; margin: 0;">
             <?php echo $order_stats['new_orders']; ?>
         </p>
         <small>(Đơn hàng đang 'Chờ xử lý')</small>
     </div>
-    <div style="border: 1px solid #ccc; padding: 20px; background: #f9f9f9;">
+    <div style="flex: 1; min-width: 200px; border: 1px solid #ccc; padding: 20px; background: #f9f9f9; border-radius: 5px;">
         <h4>Người dùng mới</h4>
         <p style="font-size: 24px; color: blue; margin: 0;">
             <?php echo $new_users; ?>
@@ -44,12 +54,12 @@
     </div>
 </div>
 
+<!-- Biểu đồ (Không thay đổi) -->
 <hr>
 <h3>Doanh thu 7 ngày qua (Đơn đã hoàn thành)</h3>
 <div style="width: 100%; max-width: 800px;">
     <canvas id="revenueChart"></canvas>
 </div>
-
 <script>
     // Lấy dữ liệu từ PHP (Controller đã truyền)
     const labels = <?php echo $chart_labels_json; ?>;
@@ -84,13 +94,23 @@
         config
     );
 </script>
+<!-- KẾT THÚC BIỂU ĐỒ -->
 
 <hr>
-<div style="display: flex; gap: 20px; margin-top: 20px;">
+
+<!-- 
+============================================================
+ CẬP NHẬT (Người 3): Áp dụng class .table cho Bảng
+============================================================
+-->
+<div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
     
-    <div style="flex: 1;">
+    <!-- Cột trái: Đơn hàng mới nhất -->
+    <div style="flex: 1; min-width: 400px;">
         <h3>Đơn hàng mới nhất</h3>
-        <table border="1" style="width: 100%; border-collapse: collapse;">
+        
+        <!-- Áp dụng class .table -->
+        <table class="table">
             <thead> <tr> <th>ID</th> <th>Khách hàng</th> <th>Tổng tiền</th> <th>Trạng thái</th> </tr> </thead>
             <tbody>
                 <?php foreach ($latest_orders as $order): ?>
@@ -109,9 +129,12 @@
         </table>
     </div>
     
-    <div style="flex: 1;">
+    <!-- Cột phải: User mới nhất -->
+    <div style="flex: 1; min-width: 400px;">
         <h3>Người dùng mới nhất</h3>
-        <table border="1" style="width: 100%; border-collapse: collapse;">
+        
+        <!-- Áp dụng class .table -->
+        <table class="table">
             <thead> <tr> <th>ID</th> <th>Họ Tên</th> <th>Email</th> <th>Ngày ĐK</th> </tr> </thead>
             <tbody>
                 <?php foreach ($latest_users as $user): ?>

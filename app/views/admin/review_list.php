@@ -1,15 +1,40 @@
-<h1 style="color: blue;">Trang Quản trị Admin</h1>
+<?php 
+/*
+ * File trang Admin - Quản lý Đánh giá (ĐÃ DỌN DẸP CSS)
+ * (Phiên bản ĐÚNG - KHÔNG có tính năng Phê duyệt)
+ * Áp dụng: .table, .btn, .btn-primary, .btn-secondary, .btn-danger
+ *
+ * Các biến được truyền từ AdminController@listReviews:
+ * $reviews (mảng)
+ */
+?>
+
+<h1>Trang Quản trị Admin</h1>
 <h2>Quản lý Đánh giá (Reviews)</h2>
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin">Tổng quan</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts">Sản phẩm</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Thương hiệu</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Danh mục</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders">Đơn hàng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers">Người dùng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews" style="font-weight: bold;">Đánh giá</a>
+
+<!-- 
+============================================================
+ THANH ĐIỀU HƯỚNG ADMIN (ĐÃ ÁP DỤNG CLASS .btn)
+============================================================
+-->
+<div class="admin-nav" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin" class="btn btn-secondary">Tổng quan</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" class="btn btn-secondary">Quản lý Sản phẩm</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands" class="btn btn-secondary">Quản lý Thương hiệu</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories" class="btn btn-secondary">Quản lý Danh mục</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" class="btn btn-secondary">Quản lý Đơn hàng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers" class="btn btn-secondary">Quản lý Người dùng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews" class="btn btn-primary">Đánh giá</a>
+</div>
 <hr>
 
-<table border="1" style="width: 100%; border-collapse: collapse;">
+<!-- 
+============================================================
+ BẢNG DANH SÁCH (ĐÃ ÁP DỤNG CLASS .table)
+ (Đã xóa cột Trạng thái bị lỗi)
+============================================================
+-->
+<table class="table">
     <thead>
         <tr>
             <th>ID</th>
@@ -32,10 +57,16 @@
                 <td><?php echo htmlspecialchars($review['full_name']); ?></td>
                 <td><strong style="color: orange;"><?php echo $review['rating']; ?> ★</strong></td>
                 <td><?php echo htmlspecialchars($review['comment']); ?></td>
-                <td><?php echo date('d/m/Y', strtotime($review['created_at'])); ?></td>
+                <td style="white-space: nowrap;"><?php echo date('d/m/Y', strtotime($review['created_at'])); ?></td>
                 <td>
+                    <!-- 
+                    ============================================================
+                     CỘT HÀNH ĐỘNG (ĐÃ ÁP DỤNG CLASS .btn)
+                    ============================================================
+                    -->
                     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=deleteReview&id=<?php echo $review['review_id']; ?>" 
-                       onclick="return confirm('Bạn có chắc muốn XÓA đánh giá này?');" style="color: red;">
+                       onclick="return confirm('Bạn có chắc muốn XÓA đánh giá này?');" 
+                       class="btn btn-danger" style="font-size: 0.9em; padding: 5px;">
                         Xóa
                     </a>
                 </td>
