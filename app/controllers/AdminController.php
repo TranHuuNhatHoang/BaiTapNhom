@@ -43,7 +43,20 @@ class AdminController {
      * Action: Hiển thị danh sách sản phẩm (trang chính admin)
      * URL: index.php?controller=admin&action=index (hoặc admin)
      */
-
+ public function __construct() {
+        // 1. Kiểm tra xem user đã đăng nhập chưa
+        if (!isset($_SESSION['user_id'])) {
+            // Nếu chưa, đá về trang Login
+            header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+            exit;
+        }
+        
+        // 2. Kiểm tra xem user CÓ PHẢI LÀ ADMIN không
+        if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+            // Nếu không phải admin, báo lỗi 403 (Cấm)
+            die("Lỗi 403: Bạn không có quyền truy cập khu vực này.");
+        }
+    }
     /**
  * HÀM INDEX MỚI (cho Dashboard)
  */
