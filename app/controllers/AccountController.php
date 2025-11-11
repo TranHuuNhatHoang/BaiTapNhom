@@ -2,12 +2,16 @@
 // Tải các Model cần thiết
 require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/Order.php';
+// Tải file functions (để dùng set_flash_message)
+require_once ROOT_PATH . '/config/functions.php';
 
 class AccountController {
 
     // Bắt buộc đăng nhập cho tất cả các action trong controller này
     public function __construct() {
         if (!isset($_SESSION['user_id'])) {
+            // Đặt thông báo lỗi TRƯỚC KHI chuyển hướng
+            set_flash_message("Bạn phải đăng nhập để xem trang này.", 'error');
             header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
             exit;
         }
@@ -19,10 +23,10 @@ class AccountController {
     public function index() {
         global $conn;
         $userModel = new User($conn);
-        $user = $userModel->getUserById($_SESSION['user_id']); // Dùng hàm từ GĐ trước
+        $user = $userModel->getUserById($_SESSION['user_id']); 
 
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/account/index.php'; // Sẽ tạo
+        require_once ROOT_PATH . '/app/views/account/index.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
@@ -35,7 +39,7 @@ class AccountController {
         $orders = $orderModel->getOrdersByUserId($_SESSION['user_id']);
 
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/account/history.php'; // Sẽ tạo
+        require_once ROOT_PATH . '/app/views/account/history.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
@@ -56,17 +60,24 @@ class AccountController {
             if ($userModel->updateProfile($user_id, $full_name, $phone, $address, $province)) {
                 // Cập nhật lại tên trong Session
                 $_SESSION['user_full_name'] = $full_name;
+                
+                // Đặt thông báo thành công
+                set_flash_message("Cập nhật thông tin thành công!", 'success');
                 header("Location: " . BASE_URL . "index.php?controller=account&action=index");
                 exit;
             } else {
-                die("Lỗi cập nhật thông tin.");
+                // die("Lỗi cập nhật thông tin."); // CŨ
+                set_flash_message("Lỗi cập nhật thông tin.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=account&action=index");
+                exit;
             }
         }
     }
 
-     
-     // HÀM Hiển thị form Đổi mật khẩu
-     
+    
+    /**
+     * HÀM Hiển thị form Đổi mật khẩu
+     */
     public function changePassword() {
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/account/change_password.php'; 
@@ -74,9 +85,9 @@ class AccountController {
     }
 
     
-     // HÀM Xử lý Đổi mật khẩu
-    
-    
+    /**
+     * HÀM Xử lý Đổi mật khẩu
+     */
     public function handleChangePassword() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             global $conn;
@@ -87,33 +98,41 @@ class AccountController {
             $new_password = $_POST['new_password'];
             $confirm_password = $_POST['confirm_password'];
             
-            // 1. Lấy mật khẩu cũ (đã băm)
             $current_hash = $userModel->getPasswordHashById($user_id);
             
             // 2. So sánh mật khẩu cũ
             if (!password_verify($old_password, $current_hash)) {
-                die("Lỗi: Mật khẩu cũ không đúng.");
+                // die("Lỗi: Mật khẩu cũ không đúng."); // CŨ
+                set_flash_message("Lỗi: Mật khẩu cũ không đúng.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=account&action=changePassword");
+                exit;
             }
             
             // 3. So sánh mật khẩu mới
             if ($new_password !== $confirm_password) {
-                die("Lỗi: Mật khẩu mới không khớp.");
+                // die("Lỗi: Mật khẩu mới không khớp."); // CŨ
+                set_flash_message("Lỗi: Mật khẩu mới không khớp.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=account&action=changePassword");
+                exit;
             }
             
             // 4. Cập nhật mật khẩu mới
             if ($userModel->updatePassword($user_id, $new_password)) {
-                // Đổi thành công, đá về trang tài khoản
-                echo "Đổi mật khẩu thành công!";
-                header("Refresh: 2; URL=" . BASE_URL . "index.php?controller=account&action=index");
+                // echo "Đổi mật khẩu thành công!"; // CŨ
+                set_flash_message("Đổi mật khẩu thành công!", 'success'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=account&action=index");
                 exit;
             } else {
-                die("Lỗi khi cập nhật mật khẩu.");
+                // die("Lỗi khi cập nhật mật khẩu."); // CŨ
+                set_flash_message("Lỗi khi cập nhật mật khẩu.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=account&action=changePassword");
+                exit;
             }
         }
     }
+    
     /**
      * HÀM MỚI: Hiển thị Chi tiết 1 Đơn hàng
-     * URL: index.php?controller=account&action=orderDetail&id=123
      */
     public function orderDetail() {
         $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -122,19 +141,21 @@ class AccountController {
         global $conn;
         $orderModel = new Order($conn);
         
-        // 1. Lấy thông tin đơn hàng (để kiểm tra xem có đúng của user này không)
         $order = $orderModel->getOrderByIdAndUserId($order_id, $user_id);
         
         if (!$order) {
-            die("Không tìm thấy đơn hàng hoặc bạn không có quyền xem đơn hàng này.");
+            // die("Không tìm thấy đơn hàng..."); // CŨ
+            set_flash_message("Không tìm thấy đơn hàng hoặc bạn không có quyền xem.", 'error'); // MỚI
+            header("Location: " . BASE_URL . "index.php?controller=account&action=history");
+            exit;
         }
         
         // 2. Lấy chi tiết các sản phẩm trong đơn
         $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
         
-        // 3. Tải View (truyền $order và $order_details)
+        // 3. Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/account/order_detail.php'; // Sẽ tạo
+        require_once ROOT_PATH . '/app/views/account/order_detail.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 }
