@@ -197,5 +197,16 @@ class User {
         $stmt->bind_param("ss", $hashed_password, $token);
         return $stmt->execute();
     }
+       public function getLatestUsers($limit = 5) {
+        $sql = "SELECT user_id, full_name, email, created_at FROM users
+                ORDER BY created_at DESC
+                LIMIT ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>
