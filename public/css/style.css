@@ -1,59 +1,174 @@
-/* --- BƯỚC 1 (Người 2): CSS cho Navbar --- */
-/* (Bạn có thể sửa lại màu sắc/font chữ sau) */
-
-/* Thanh nav chính */
-nav {
-    background-color: #333;
-    padding: 0 15px;
-}
-nav ul {
-    list-style: none;
+/* 1. Reset và Thiết lập Cơ bản */
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    display: flex;
-    align-items: center; /* Căn giữa các mục */
 }
-nav ul li {
-    position: relative; /* Quan trọng cho dropdown */
+body {
+    font-family: 'Inter', sans-serif; /* Font mới đã thêm */
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
 }
-nav ul li a {
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+img {
+    max-width: 100%;
+    height: auto;
     display: block;
-    padding: 15px 20px;
-    color: white;
+}
+a {
+    color: #007bff;
     text-decoration: none;
 }
-nav ul li a:hover {
-    background-color: #555;
+a:hover {
+    text-decoration: underline;
 }
-
-/* Ẩn menu dropdown mặc định */
-nav ul li .dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 100%; /* Hiện ngay bên dưới */
-    left: 0;
-    background-color: #f9f9f9;
-    min-width: 200px; /* Độ rộng tối thiểu */
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 100;
-    padding: 0; /* Xóa padding của ul */
-    margin: 0; /* Xóa margin của ul */
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 20px 0;
 }
-
-/* Hiển thị menu dropdown khi hover vào <li> cha */
-nav ul li:hover .dropdown-menu {
+/* 2. Class cho Nút bấm (Button) */
+.btn {
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+    color: white;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+    text-decoration: none;
+    color: white;
+}
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+    text-decoration: none;
+    color: white;
+}
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+.btn-success:hover {
+    background-color: #218838;
+    text-decoration: none;
+    color: white;
+}
+/* 3. Class cho Form */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
     display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+.form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+select.form-control {
+    /* Đảm bảo select có chiều cao tương tự */
+    height: 40px; 
+}
+/* 4. Class cho Bảng (Table) */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+.table thead {
+    background-color: #f8f9fa;
+}
+.table tbody tr:nth-child(even) {
+    background-color: #f_f_f;
+}
+/* 5. Class cho Sản phẩm (Card) */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.product-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s ease;
+}
+.product-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.product-card img {
+    width: 100%;
+    height: 200px; /* Cố định chiều cao ảnh */
+    object-fit: cover; /* Đảm bảo ảnh vừa vặn */
+}
+.product-card-body {
+    padding: 15px;
+}
+.product-card-body .brand {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+.product-card-body h3 {
+    font-size: 1.1em;
+    font-weight: 500;
+    margin: 5px 0;
+    /* (Giới hạn 2 dòng) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.4em; /* (1.1em * 2 * 1.1 line-height (ước lượng)) */
+}
+.product-card-body .price {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #dc3545;
+    margin: 10px 0;
 }
 
-/* CSS cho các mục con trong dropdown */
-nav ul li .dropdown-menu li {
-    display: block; /* Hiển thị theo chiều dọc */
-    width: 100%;
-}
-nav ul li .dropdown-menu li a {
-    color: black;
-    padding: 12px 16px;
-}
-nav ul li .dropdown-menu li a:hover {
-    background-color: #ddd;
-}
+/* --- KẾT THÚC CSS TOÀN CỤC --- */
+
+/* * LƯU Ý: Code CSS cho navbar cũ (từ GĐ18) đã được xóa 
+ * và sẽ không được thêm vào đây theo hướng dẫn.
+ */

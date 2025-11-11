@@ -9,11 +9,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cửa hàng Laptop</title>
     
-    <!-- Link CSS chính -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>public/css/style.css">
     
-    <!-- Link JS (defer: chạy sau khi HTML tải xong) -->
-    <!-- (JavaScript của Người 2 (AJAX) và Người 3 (Flash) cần file này) -->
     <script src="<?php echo BASE_URL; ?>public/js/main.js" defer></script>
 </head>
 <body>
@@ -21,11 +22,6 @@
         
         <?php include 'navbar.php'; // Tải thanh điều hướng ?>
         
-        <!-- 
-        ============================================================
-         THÊM MỚI (Người 3 - GĐ19): Hiển thị Thông báo Flash
-        ============================================================
-        -->
         <?php
         // Đảm bảo functions.php đã được tải (an toàn)
         // (Đường dẫn này tính từ header.php -> /views/ -> /app/ -> / (ROOT_PATH))
@@ -38,7 +34,4 @@
         // và tự xóa sau khi hiển thị
         display_flash_message();
         ?>
-        <!-- KẾT THÚC THÊM MỚI -->
-
-        <main> <!-- Thẻ <main> nên MỞ ở đây -->
-        <!-- (Và thẻ </main> sẽ được ĐÓNG trong footer.php) -->
+        <main>
