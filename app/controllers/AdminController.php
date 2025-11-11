@@ -47,7 +47,7 @@ class AdminController {
     /**
  * HÀM INDEX MỚI (cho Dashboard)
  */
-    public function index() {
+public function index() {
         global $conn;
         
         // 1. Lấy thống kê (đã có)
@@ -58,10 +58,10 @@ class AdminController {
         $userModel = new User($conn);
         $new_users = $userModel->countNewUsers();
         
-        // 3. THÊM MỚI: Lấy dữ liệu cho biểu đồ
+        // 3. Lấy dữ liệu cho biểu đồ (Từ block 2 của bạn)
         $chart_data_raw = $orderModel->getRevenueLast7Days();
         
-        // 4. Chuẩn bị dữ liệu cho Chart.js
+        // 4. Chuẩn bị dữ liệu cho Chart.js (Từ block 2 của bạn)
         $chart_labels = [];
         $chart_values = [];
         foreach ($chart_data_raw as $data) {
@@ -73,7 +73,16 @@ class AdminController {
         $chart_labels_json = json_encode($chart_labels);
         $chart_values_json = json_encode($chart_values);
 
-        // 5. Tải view dashboard (truyền thêm 2 biến JSON)
+        // 5. --- THÊM MỚI (Từ yêu cầu của block 1) ---
+        // Đây là 2 dòng bị thiếu trong code của bạn
+        $latest_orders = $orderModel->getLatestOrders(5);
+        $latest_users = $userModel->getLatestUsers(5);
+        // --- KẾT THÚC THÊM MỚI ---
+
+        // 6. Tải view dashboard
+        // File view này giờ có thể truy cập TẤT CẢ các biến:
+        // $order_stats, $new_users, $chart_labels_json, 
+        // $chart_values_json, $latest_orders, $latest_users
         require_once ROOT_PATH . '/app/views/admin/dashboard.php';
     }
     public function listProducts() {

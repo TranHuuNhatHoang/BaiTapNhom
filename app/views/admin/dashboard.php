@@ -1,3 +1,10 @@
+<?php
+// (This file is app/views/admin/dashboard.php)
+// Controller đã truyền các biến:
+// $order_stats, $new_users, 
+// $chart_labels_json, $chart_values_json,
+// $latest_orders, $latest_users
+?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
@@ -77,3 +84,49 @@
         config
     );
 </script>
+
+<hr>
+<div style="display: flex; gap: 20px; margin-top: 20px;">
+    
+    <div style="flex: 1;">
+        <h3>Đơn hàng mới nhất</h3>
+        <table border="1" style="width: 100%; border-collapse: collapse;">
+            <thead> <tr> <th>ID</th> <th>Khách hàng</th> <th>Tổng tiền</th> <th>Trạng thái</th> </tr> </thead>
+            <tbody>
+                <?php foreach ($latest_orders as $order): ?>
+                <tr>
+                    <td>
+                        <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=orderDetail&id=<?php echo $order['order_id']; ?>">
+                            #<?php echo $order['order_id']; ?>
+                        </a>
+                    </td>
+                    <td><?php echo htmlspecialchars($order['full_name']); ?></td>
+                    <td><?php echo number_format($order['total_amount']); ?></td>
+                    <td><?php echo htmlspecialchars($order['order_status']); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="flex: 1;">
+        <h3>Người dùng mới nhất</h3>
+        <table border="1" style="width: 100%; border-collapse: collapse;">
+            <thead> <tr> <th>ID</th> <th>Họ Tên</th> <th>Email</th> <th>Ngày ĐK</th> </tr> </thead>
+            <tbody>
+                <?php foreach ($latest_users as $user): ?>
+                <tr>
+                    <td><?php echo $user['user_id']; ?></td>
+                    <td>
+                        <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=editUser&id=<?php echo $user['user_id']; ?>">
+                            <?php echo htmlspecialchars($user['full_name']); ?>
+                        </a>
+                    </td>
+                    <td><?php echo htmlspecialchars($user['email']); ?></td>
+                    <td><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>

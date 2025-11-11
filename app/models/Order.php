@@ -173,6 +173,18 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-
+  public function getLatestOrders($limit = 5) {
+        $sql = "SELECT o.order_id, o.order_status, o.total_amount, u.full_name
+                FROM orders o
+                JOIN users u ON o.user_id = u.user_id
+                ORDER BY o.created_at DESC
+                LIMIT ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>
