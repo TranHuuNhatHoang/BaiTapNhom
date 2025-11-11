@@ -10,16 +10,22 @@ class Order {
      * Tạo một đơn hàng mới trong bảng 'orders'
      * Trả về ID của đơn hàng vừa tạo (order_id)
      */
-    public function createOrder($user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method) {
-        $sql = "INSERT INTO orders (user_id, total_amount, shipping_address, shipping_phone, notes, payment_method, order_status)
-                VALUES (?, ?, ?, ?, ?, ?, 'pending')";
+    /**
+     * CẬP NHẬT (Người 1 - GĐ18): Thêm coupon_code và discount
+     */
+    public function createOrder($user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method, $coupon_code, $discount_applied) {
+        
+        // Trừ tiền giảm giá khỏi tổng tiền
+        $final_total = $total_amount - $discount_applied;
+        
+        $sql = "INSERT INTO orders (user_id, total_amount, shipping_address, shipping_phone, notes, payment_method, order_status, coupon_code, discount_applied)
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)";
         
         $stmt = $this->conn->prepare($sql);
-        // (i = integer, d = double, s = string)
-$stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shipping_phone, $notes, $payment_method);
+        // (i, d, s, s, s, s, s, d)
+        $stmt->bind_param("idsssssd", $user_id, $final_total, $shipping_address, $shipping_phone, $notes, $payment_method, $coupon_code, $discount_applied);
         
         if ($stmt->execute()) {
-            // Lấy ID của đơn hàng vừa chèn
             return $this->conn->insert_id;
         } else {
             return false;
