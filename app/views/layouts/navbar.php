@@ -69,7 +69,45 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
                 <?php endforeach; ?>
             </ul>
         </li>
-        <li><a href="<?php echo BASE_URL; ?>index.php?controller=product&action=search">Tìm kiếm</a></li>
+       <!-- CẬP NHẬT (Người 2): Form Live Search -->
+        <li style="position: relative;">
+            <!-- Form này sẽ trỏ đến trang Tìm kiếm đầy đủ (nếu nhấn Enter) -->
+            <form method="GET" action="<?php echo BASE_URL; ?>index.php">
+                <input type="hidden" name="controller" value="product">
+                <input type="hidden" name="action" value="search">
+                
+                <input type="text" id="navbar-search-input" name="query" 
+                       placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+            </form>
+            
+            <!-- Hộp kết quả (CSS cơ bản) -->
+            <div id="navbar-search-results" 
+                 style="display: none; position: absolute; top: 100%; left: 0; 
+                        background: white; border: 1px solid #ccc; 
+                        min-width: 400px; z-index: 1000;">
+                <!-- JavaScript sẽ điền kết quả vào đây -->
+            </div>
+            <!-- (Thêm CSS này vào file style.css của bạn nếu muốn) -->
+            <style>
+                .search-result-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 8px 12px;
+                    text-decoration: none;
+                    color: black;
+                    border-bottom: 1px solid #eee;
+                }
+                .search-result-item:hover {
+                    background-color: #f4f4f4;
+                }
+                .search-result-item span {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            </style>
+        </li>
         
         <?php if (isset($_SESSION['user_id'])): ?>
             <li>
