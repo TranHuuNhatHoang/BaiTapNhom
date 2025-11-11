@@ -1,72 +1,85 @@
 <?php
 // 1. Tải file Model User
 require_once ROOT_PATH . '/app/models/User.php';
+// 2. Tải file functions (để dùng set_flash_message)
+require_once ROOT_PATH . '/config/functions.php';
 
 class AuthController {
 
     /**
-     * Action: Hiển thị form đăng ký (khi người dùng truy cập)
-     * URL: index.php?controller=auth&action=register
+     * Action: Hiển thị form đăng ký
      */
     public function register() {
-        // Chỉ cần tải View lên
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/auth/register.php'; // Sẽ tạo file này ở bước 4
+        require_once ROOT_PATH . '/app/views/auth/register.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
-     * Action: Xử lý dữ liệu từ form (khi người dùng nhấn nút Đăng ký)
-     * URL: (Form sẽ POST về) index.php?controller=auth&action=handleRegister
+     * Action: Xử lý dữ liệu từ form đăng ký
      */
     public function handleRegister() {
-        // Chỉ xử lý nếu đây là yêu cầu POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            // 1. Lấy dữ liệu (từ CSDL của bạn, chúng ta cần full_name)
             $full_name = $_POST['full_name'];
             $email = $_POST['email'];
             $password = $_POST['password'];
             $password_confirm = $_POST['password_confirm'];
 
-            // 2. Validate (xác thực) dữ liệu đơn giản
+            // 2. Validate (xác thực)
             if (empty($full_name) || empty($email) || empty($password)) {
-                die("Lỗi: Vui lòng nhập đầy đủ thông tin.");
+                // die("Lỗi: Vui lòng nhập đầy đủ thông tin."); // CŨ
+                set_flash_message("Lỗi: Vui lòng nhập đầy đủ thông tin.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=register");
+                exit;
             }
 
             if ($password !== $password_confirm) {
-                die("Lỗi: Mật khẩu xác nhận không khớp.");
+                // die("Lỗi: Mật khẩu xác nhận không khớp."); // CŨ
+                set_flash_message("Lỗi: Mật khẩu xác nhận không khớp.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=register");
+                exit;
             }
 
             // 3. Gọi Model
-            global $conn; // Lấy kết nối CSDL ($conn) từ index.php
+            global $conn;
             $userModel = new User($conn);
 
             // 4. Kiểm tra email đã tồn tại chưa
             if ($userModel->findUserByEmail($email)) {
-                die("Lỗi: Email này đã được đăng ký. Vui lòng sử dụng email khác.");
+                // die("Lỗi: Email này đã được đăng ký..."); // CŨ
+                set_flash_message("Lỗi: Email này đã được đăng ký. Vui lòng sử dụng email khác.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=register");
+                exit;
             }
             
-            // 5. Nếu email chưa tồn tại, tạo user mới
+            // 5. Tạo user mới
             if ($userModel->createUser($full_name, $email, $password)) {
-                // Đăng ký thành công, chuyển hướng về trang chủ
-                // (Sau này có thể chuyển về trang đăng nhập)
-                echo "Đăng ký thành công! Đang chuyển về trang chủ...";
-                header("Refresh: 3; URL=" . BASE_URL);
+                // echo "Đăng ký thành công!..."; // CŨ
+                set_flash_message("Đăng ký thành công! Vui lòng đăng nhập.", 'success'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
                 exit;
             } else {
-                die("Đã có lỗi xảy ra trong quá trình đăng ký.");
+                // die("Đã có lỗi xảy ra..."); // CŨ
+                set_flash_message("Đã có lỗi xảy ra trong quá trình đăng ký.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=register");
+                exit;
             }
         }
     }
-    // Action: Hiển thị form Đăng nhập 
+    
+    /**
+     * Action: Hiển thị form Đăng nhập 
+     */
     public function login() {
-        // Tải view form đăng nhập
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/auth/login.php'; // Sẽ tạo ở bước 4
+        require_once ROOT_PATH . '/app/views/auth/login.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
-    // Action: Xử lý thông tin đăng nhập (từ form)
+    
+    /**
+     * Action: Xử lý thông tin đăng nhập
+     */
     public function handleLogin() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -74,45 +87,54 @@ class AuthController {
 
             global $conn;
             $userModel = new User($conn);
-
-            // Gọi hàm loginUser từ Model
             $user = $userModel->loginUser($email, $password);
 
             if ($user) {
                 // Đăng nhập THÀNH CÔNG
-                // Lưu thông tin user vào SESSION
                 $_SESSION['user_id'] = $user['user_id'];
                 $_SESSION['user_full_name'] = $user['full_name'];
                 $_SESSION['user_role'] = $user['role'];
+                // (Sau này Người 3 - GĐ 19 sẽ thêm $_SESSION['user_avatar'] ở đây)
 
-                // Chuyển hướng về trang chủ
+                set_flash_message("Đăng nhập thành công! Chào mừng " . htmlspecialchars($user['full_name']), 'success'); // MỚI
                 header("Location: " . BASE_URL);
                 exit;
             } else {
                 // Đăng nhập THẤT BẠI
-                die("Email hoặc mật khẩu không đúng.");
+                // die("Email hoặc mật khẩu không đúng."); // CŨ
+                set_flash_message("Email hoặc mật khẩu không đúng.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+                exit;
             }
         }
     }
-    //Action: Đăng xuất
+    
+    /**
+     * Action: Đăng xuất
+     */
     public function logout() {
         session_unset(); // Xóa tất cả biến session
         session_destroy(); // Hủy session
         
-        // Chuyển hướng về trang chủ
+        session_start(); // Bắt đầu lại session để lưu flash message
+        set_flash_message("Bạn đã đăng xuất.", 'info'); // MỚI
+        
         header("Location: " . BASE_URL);
         exit;
     }
 
-     // HÀM Hiển thị form Quên mật khẩu
-     
+    /**
+     * HÀM Hiển thị form Quên mật khẩu
+     */
     public function forgotPassword() {
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/auth/forgot_password.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
     
-     // HÀM Xử lý Gửi link Reset
+    /**
+     * HÀM Xử lý Gửi link Reset
+     */
     public function handleForgotPassword() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -122,20 +144,29 @@ class AuthController {
             
             if ($token) {
                 // GIẢ LẬP GỬI EMAIL
-                // Trong dự án thật, bạn sẽ dùng thư viện PHPMailer
                 $reset_link = BASE_URL . "index.php?controller=auth&action=resetPassword&token=" . $token;
                 
-                echo "GỬI MAIL (Giả lập): Một link reset đã được gửi đến $email. <br>";
-                echo "Vui lòng nhấn vào link này để reset: <a href='$reset_link'>$reset_link</a>";
+                // echo "GỬI MAIL (Giả lập): ..."; // CŨ
+                // Thay vì echo, chúng ta báo thành công và chuyển hướng
+                // Trong dự án thật, bạn sẽ gửi mail $reset_link
+                // Ở đây, chúng ta báo user kiểm tra CSDL (hoặc echo link)
+                
+                set_flash_message("Yêu cầu thành công. Nếu email tồn tại, link reset (giả lập) đã được tạo. Token: " . $token, 'info'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=forgotPassword");
+                exit;
             } else {
-                echo "Không tìm thấy email hoặc có lỗi. Vui lòng thử lại.";
+                // echo "Không tìm thấy email..."; // CŨ
+                set_flash_message("Không tìm thấy email hoặc có lỗi. Vui lòng thử lại.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=forgotPassword");
+                exit;
             }
         }
     }
     
     
-     // HÀM Hiển thị form Reset Mật khẩu
-     
+    /**
+     * HÀM Hiển thị form Reset Mật khẩu
+     */
     public function resetPassword() {
         $token = $_GET['token'] ?? '';
         global $conn;
@@ -143,7 +174,10 @@ class AuthController {
         $user = $userModel->findUserByResetToken($token);
         
         if (!$user) {
-            die("Token không hợp lệ hoặc đã hết hạn.");
+            // die("Token không hợp lệ hoặc đã hết hạn."); // CŨ
+            set_flash_message("Token không hợp lệ hoặc đã hết hạn.", 'error'); // MỚI
+            header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+            exit;
         }
         
         // Truyền $token cho view
@@ -151,24 +185,37 @@ class AuthController {
         require_once ROOT_PATH . '/app/views/auth/reset_password.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
-     // HÀM xử lý Đặt lại Mật khẩu
-     
+    
+    /**
+     * HÀM xử lý Đặt lại Mật khẩu
+     */
     public function handleResetPassword() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['token'];
             $new_password = $_POST['new_password'];
             $confirm_password = $_POST['confirm_password'];
+
             if ($new_password !== $confirm_password) {
-                die("Mật khẩu không khớp.");
+                // die("Mật khẩu không khớp."); // CŨ
+                set_flash_message("Mật khẩu không khớp.", 'error'); // MỚI
+                // Chuyển hướng lại trang reset (vẫn kèm token)
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=resetPassword&token=" . urlencode($token));
+                exit;
             } 
+            
             global $conn;
             $userModel = new User($conn);
+            
             if ($userModel->updatePasswordByToken($token, $new_password)) {
-                echo "Cập nhật mật khẩu thành công!";
-                header("Refresh: 2; URL=" . BASE_URL . "index.php?controller=auth&action=login");
+                // echo "Cập nhật mật khẩu thành công!"; // CŨ
+                set_flash_message("Cập nhật mật khẩu thành công! Vui lòng đăng nhập.", 'success'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
                 exit;
             } else {
-                die("Lỗi: Token không hợp lệ hoặc đã hết hạn.");
+                // die("Lỗi: Token không hợp lệ hoặc đã hết hạn."); // CŨ
+                set_flash_message("Lỗi: Token không hợp lệ hoặc đã hết hạn.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+                exit;
             }
         }
     }

@@ -4,24 +4,27 @@ require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/Product.php';
 require_once ROOT_PATH . '/app/models/Order.php';     
 require_once ROOT_PATH . '/app/models/OrderDetail.php'; 
-// (Chúng ta không cần Coupon.php ở đây vì chỉ đọc Session)
+// Tải file functions (để dùng set_flash_message)
+require_once ROOT_PATH . '/config/functions.php';
 
 class CheckoutController {
 
     /**
      * Action: Hiển thị trang Checkout
-     * CẬP NHẬT: Thêm logic đọc Coupon từ Session
+     * CẬP NHẬT: Thêm logic Flash Message
      */
     public function index() {
         global $conn;
         
-        // --- Code bảo vệ (đã có) ---
+        // --- Code bảo vệ (Cập nhật với Flash Message) ---
         if (!isset($_SESSION['user_id'])) {
+            set_flash_message("Bạn phải đăng nhập để thanh toán.", 'error'); // MỚI
             header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
             exit;
         }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
         if (empty($cart)) {
+            set_flash_message("Giỏ hàng của bạn rỗng. Vui lòng thêm sản phẩm.", 'info'); // MỚI
             header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
             exit;
         }
@@ -45,19 +48,15 @@ class CheckoutController {
             }
         }
         
-        // --- CẬP NHẬT (Người 1 - GĐ18): Lấy thông tin coupon từ Session ---
+        // --- Lấy thông tin coupon (đã có) ---
         $coupon_code = $_SESSION['cart_coupon']['code'] ?? null;
         $discount_amount = $_SESSION['cart_coupon']['discount'] ?? 0;
-        
-        // Đảm bảo không giảm giá nhiều hơn tổng tiền
         if ($discount_amount > $total_price) {
             $discount_amount = $total_price;
         }
+        $final_price = $total_price - $discount_amount;
         
-        $final_price = $total_price - $discount_amount; // Tổng tiền cuối cùng
-        // --- KẾT THÚC CẬP NHẬT ---
-        
-        // Tải View (truyền tất cả các biến cho view)
+        // Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/checkout/index.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
@@ -65,15 +64,23 @@ class CheckoutController {
     
     /**
      * Action: Xử lý Đặt hàng
-     * CẬP NHẬT: Thêm logic lưu Coupon vào CSDL
+     * CẬP NHẬT: Thêm logic Flash Message
      */
     public function placeOrder() {
         global $conn;
 
-        // --- Code bảo vệ (đã có) ---
-        if (!isset($_SESSION['user_id'])) { /* ... */ }
+        // --- Code bảo vệ (Cập nhật với Flash Message) ---
+        if (!isset($_SESSION['user_id'])) {
+            set_flash_message("Bạn phải đăng nhập để thanh toán.", 'error'); // MỚI
+            header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+            exit;
+        }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
-        if (empty($cart) || $_SERVER['REQUEST_METHOD'] !== 'POST') { /* ... */ }
+        if (empty($cart) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+            set_flash_message("Giỏ hàng của bạn rỗng. Vui lòng thêm sản phẩm.", 'info'); // MỚI
+            header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+            exit;
+        }
         
         // 1. Lấy thông tin từ form (đã có)
         $user_id = $_SESSION['user_id'];
@@ -91,7 +98,10 @@ class CheckoutController {
             $product = $productModel->getProductById($product_id);
             if ($product) {
                 if ($product['quantity'] < $quantity) {
-                    die("Lỗi: Sản phẩm '" . htmlspecialchars($product['product_name']) . "' không đủ tồn kho.");
+                    // die("Lỗi: Sản phẩm ..."); // CŨ
+                    set_flash_message("Lỗi: Sản phẩm '" . htmlspecialchars($product['product_name']) . "' chỉ còn " . $product['quantity'] . " cái. Vui lòng kiểm tra lại giỏ hàng.", 'error'); // MỚI
+                    header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+                    exit;
                 }
                 $total_price += $product['price'] * $quantity;
                 $products_in_cart[] = [
@@ -103,21 +113,18 @@ class CheckoutController {
             }
         }
 
-        // --- CẬP NHẬT (Người 1 - GĐ18): Lấy thông tin coupon từ Session ---
+        // --- Lấy thông tin coupon (đã có) ---
         $coupon_code = $_SESSION['cart_coupon']['code'] ?? null;
         $discount_amount = $_SESSION['cart_coupon']['discount'] ?? 0;
         if ($discount_amount > $total_price) {
             $discount_amount = $total_price;
         }
-        // --- KẾT THÚC CẬP NHẬT ---
 
         // BẮT ĐẦU TRANSACTION
         $conn->begin_transaction();
         try {
-            // 3. Tạo Đơn hàng (Bảng 'orders')
+            // 3. Tạo Đơn hàng (đã có)
             $orderModel = new Order($conn);
-            
-            // --- CẬP NHẬT (Người 1 - GĐ18): Truyền 8 tham số (thêm coupon) ---
             $order_id = $orderModel->createOrder(
                 $user_id, 
                 $total_price, // Gửi tổng tiền GỐC
@@ -125,37 +132,41 @@ class CheckoutController {
                 $shipping_phone, 
                 $notes, 
                 $payment_method,
-                $coupon_code,       // Tham số thứ 7
-                $discount_amount    // Tham số thứ 8
+                $coupon_code,
+                $discount_amount
             );
             
             if (!$order_id) throw new Exception("Không thể tạo đơn hàng.");
 
-            // 4. Tạo Chi tiết Đơn hàng VÀ Trừ tồn kho (code cũ, đã đúng)
+            // 4. Tạo Chi tiết Đơn hàng VÀ Trừ tồn kho (đã có)
             $orderDetailModel = new OrderDetail($conn);
             foreach ($products_in_cart as $item) {
                 $orderDetailModel->createDetail($order_id, $item['id'], $item['quantity'], $item['unit_price']);
                 $rows_affected = $productModel->decrementStock($item['id'], $item['quantity']);
                 if ($rows_affected <= 0) {
-                    throw new Exception("Sản phẩm '" . htmlspecialchars($item['name']) . "' đã hết hàng.");
+                    throw new Exception("Sản phẩm '" . htmlspecialchars($item['name']) . "' đã hết hàng trong quá trình bạn đặt.");
                 }
             }
             
             // 5. Nếu mọi thứ OK -> Commit
             $conn->commit();
             
-            // 6. Xóa giỏ hàng
+            // 6. Xóa giỏ hàng VÀ XÓA COUPON
             unset($_SESSION['cart']);
-            unset($_SESSION['cart_coupon']); // <-- THÊM MỚI: Xóa cả coupon
+            unset($_SESSION['cart_coupon']);
             
             // 7. Chuyển đến trang Cảm ơn
+            set_flash_message("Đặt hàng thành công! Cảm ơn bạn đã mua hàng.", 'success'); // MỚI
             header("Location: " . BASE_URL . "index.php?controller=checkout&action=success&order_id=" . $order_id);
             exit;
 
         } catch (Exception $e) {
             // 8. Nếu có lỗi -> Rollback
             $conn->rollback();
-            die("Đặt hàng thất bại: " . $e->getMessage());
+            // die("Đặt hàng thất bại: " . $e->getMessage()); // CŨ
+            set_flash_message("Đặt hàng thất bại: " . $e->getMessage(), 'error'); // MỚI
+            header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
+            exit;
         }
     }
     
