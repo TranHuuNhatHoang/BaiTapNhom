@@ -220,5 +220,29 @@ class ProductController {
         require_once ROOT_PATH . '/app/views/products/brand.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
+
+    /**
+     * HÀM MỚI (Người 2 - GĐ17): Tìm kiếm Tức thời (Live Search)
+     * URL: index.php?controller=product&action=liveSearch&query=dell
+     * Trả về: JSON
+     */
+    public function liveSearch() {
+        global $conn;
+        $query = isset($_GET['query']) ? trim($_GET['query']) : '';
+        
+        $products = [];
+
+        if (!empty($query)) {
+            $productModel = new Product($conn);
+            // Dùng hàm searchProductsByName, chỉ lấy 5 kết quả
+            // (sort = null, price = null)
+            $products = $productModel->searchProductsByName($query, 5, 0, null, null); 
+        }
+
+        // Trả về kết quả dưới dạng JSON
+        header('Content-Type: application/json');
+        echo json_encode($products);
+        exit; // Dừng lại, không tải view
+    }
 } 
 ?>
