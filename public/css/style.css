@@ -119,8 +119,7 @@ select.form-control {
     background-color: #f8f9fa;
 }
 .table tbody tr:nth-child(even) {
-    background-color: #f_f_f;
-}
+background-color: #f9f9f9;}
 /* 5. Class cho Sản phẩm (Card) */
 .product-grid {
     display: grid;
@@ -172,3 +171,63 @@ select.form-control {
 /* * LƯU Ý: Code CSS cho navbar cũ (từ GĐ18) đã được xóa 
  * và sẽ không được thêm vào đây theo hướng dẫn.
  */
+
+ /* --- BƯỚC 1 (Người 2): CSS cho Navbar --- */
+/* (Bạn có thể sửa lại màu sắc/font chữ sau) */
+
+/* Thanh nav chính */
+nav {
+    background-color: #333;
+    padding: 0 15px;
+}
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center; /* Căn giữa các mục */
+}
+nav ul li {
+    position: relative; /* Quan trọng cho dropdown */
+}
+nav ul li a {
+    display: block;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+}
+nav ul li a:hover {
+    background-color: #555;
+}
+
+/* Ẩn menu dropdown mặc định */
+nav ul li .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%; /* Hiện ngay bên dưới */
+    left: 0;
+    background-color: #f9f9f9;
+    min-width: 200px; /* Độ rộng tối thiểu */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 100;
+    padding: 0; /* Xóa padding của ul */
+    margin: 0; /* Xóa margin của ul */
+}
+
+/* Hiển thị menu dropdown khi hover vào <li> cha */
+nav ul li:hover .dropdown-menu {
+    display: block;
+}
+
+/* CSS cho các mục con trong dropdown */
+nav ul li .dropdown-menu li {
+    display: block; /* Hiển thị theo chiều dọc */
+    width: 100%;
+}
+nav ul li .dropdown-menu li a {
+    color: black;
+    padding: 12px 16px;
+}
+nav ul li .dropdown-menu li a:hover {
+    background-color: #ddd;
+}
