@@ -158,5 +158,83 @@ class AccountController {
         require_once ROOT_PATH . '/app/views/account/order_detail.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
+    /**
+     * HÀM HELPER: Hàm Hỗ trợ Xử lý Upload File
+     * (ĐÃ SỬA LỖI)
+     */
+    private function handleUpload($file_input_name, $upload_dir) {
+        // Kiểm tra xem có file được tải lên không và không có lỗi
+        if (isset($_FILES[$file_input_name]) && $_FILES[$file_input_name]['error'] === UPLOAD_ERR_OK) {
+            
+            $file_tmp_path = $_FILES[$file_input_name]['tmp_name'];
+            $file_name = basename($_FILES[$file_input_name]['name']);
+            
+            // Chỉ cho phép định dạng ảnh
+            $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            
+            // === SỬA LỖI Ở ĐÂY ===
+            // Dùng $_FILES['...']['type'] thay vì mime_content_type()
+            // vì nó đáng tin cậy hơn trên các cấu hình XAMPP khác nhau
+            $file_type = $_FILES[$file_input_name]['type'];
+            // === KẾT THÚC SỬA LỖI ===
+
+            if (!in_array($file_type, $allowed_mime_types)) {
+                return null; // Không phải file ảnh
+            }
+            
+            // Tạo tên file duy nhất (để tránh ghi đè)
+            $new_file_name = uniqid() . '-' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file_name);
+            
+            // Đường dẫn đích
+            $dest_path = ROOT_PATH . $upload_dir . $new_file_name;
+
+            // Di chuyển file vào thư mục đích
+            if (move_uploaded_file($file_tmp_path, $dest_path)) {
+                return $new_file_name; // Trả về TÊN FILE MỚI
+            }
+        }
+        return null; // Thất bại
+    }
+    
+    /**
+     * HÀM (Giai đoạn 19): Xử lý Upload Avatar
+     * (Hàm này giữ nguyên, nó sẽ hoạt động đúng khi 'handleUpload' được sửa)
+     */
+    public function updateAvatar() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            global $conn;
+            $userModel = new User($conn);
+            $user_id = $_SESSION['user_id'];
+            
+            // Lấy avatar cũ (để xóa)
+            $user = $userModel->getUserById($user_id);
+            $current_avatar = $user['avatar'];
+            
+            // 1. Xử lý upload ảnh
+            $new_avatar_name = $this->handleUpload('avatar_file', '/public/uploads/avatars/');
+            
+            if ($new_avatar_name) {
+                // 2. Cập nhật CSDL
+                $userModel->updateAvatar($user_id, $new_avatar_name);
+                
+                // 3. Cập nhật Session (nếu có)
+                $_SESSION['user_avatar'] = $new_avatar_name;
+                
+                // 4. Xóa avatar cũ (nếu có)
+                if (!empty($current_avatar) && file_exists(ROOT_PATH . '/public/uploads/avatars/' . $current_avatar)) {
+                    unlink(ROOT_PATH . '/public/uploads/avatars/' . $current_avatar);
+                }
+                
+                set_flash_message("Cập nhật ảnh đại diện thành công!", 'success');
+                
+            } else {
+                // Lỗi này xảy ra do hàm handleUpload trả về null
+                set_flash_message("Upload ảnh thất bại. Chỉ chấp nhận file JPG, PNG, GIF.", 'error');
+            }
+            
+            header("Location: " . BASE_URL . "index.php?controller=account&action=index");
+            exit;
+        }
+    }
 }
 ?>

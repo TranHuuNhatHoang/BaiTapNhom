@@ -1,23 +1,45 @@
+<?php 
+/*
+ * File trang Admin - Quản lý Người dùng (ĐÃ DỌN DẸP CSS)
+ * Áp dụng: .table, .btn, .btn-primary, .btn-secondary, .btn-danger, .form-control
+ *
+ * Các biến được truyền từ AdminController@listUsers:
+ * $users (mảng)
+ */
+?>
+
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
 <h2>Quản lý Người dùng</h2>
 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin">Tổng quan</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts">Sản phẩm</a> | 
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands">Thương hiệu</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories">Danh mục</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders">Đơn hàng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers" style="font-weight: bold;">Quản lý Người dùng</a> |
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews">Đánh giá</a>
+<!-- 
+============================================================
+ THANH ĐIỀU HƯỚNG ADMIN (ĐÃ ÁP DỤNG CLASS .btn)
+============================================================
+-->
+<div class="admin-nav" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin" class="btn btn-secondary">Tổng quan</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" class="btn btn-secondary">Quản lý Sản phẩm</a> 
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands" class="btn btn-secondary">Quản lý Thương hiệu</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories" class="btn btn-secondary">Quản lý Danh mục</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" class="btn btn-secondary">Quản lý Đơn hàng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listUsers" class="btn btn-primary">Quản lý Người dùng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listReviews" class="btn btn-secondary">Đánh giá</a>
+</div>
 <hr>
 
-<table border="1" style="width: 100%; border-collapse: collapse;">
+<!-- 
+============================================================
+ BẢNG DANH SÁCH (ĐÃ ÁP DỤNG CLASS .table)
+============================================================
+-->
+<table class="table">
     <thead>
         <tr>
             <th>ID</th>
             <th>Họ Tên</th>
             <th>Email</th>
             <th>Số điện thoại</th>
-            <th>Vai trò (Role)</th>
+            <th style="min-width: 180px;">Vai trò (Role)</th>
             <th>Ngày tạo</th>
             <th>Hành động</th>
         </tr>
@@ -30,32 +52,47 @@
             <td><?php echo htmlspecialchars($user['email']); ?></td>
             <td><?php echo htmlspecialchars($user['phone'] ?? ''); ?></td>
             <td>
-                <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=admin&action=updateUserRole" style="margin: 0;">
+                <!-- 
+                ============================================================
+                 FORM CẬP NHẬT VAI TRÒ (ĐÃ ÁP DỤNG CLASS)
+                ============================================================
+                -->
+                <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=admin&action=updateUserRole" 
+                      style="margin: 0; display: flex; gap: 5px;">
                     
                     <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
                     
-                    <select name="role" 
-                        <?php echo $user['user_id'] == $_SESSION['user_id'] ? 'disabled' : ''; // Admin không thể đổi vai trò của chính mình ?>>
+                    <!-- Áp dụng class .form-control -->
+                    <select name="role" class="form-control" style="padding: 5px; height: 36px;"
+                        <?php echo $user['user_id'] == $_SESSION['user_id'] ? 'disabled' : ''; ?>>
                         
                         <option value="user" <?php echo $user['role'] == 'user' ? 'selected' : ''; ?>>User</option>
                         <option value="admin" <?php echo $user['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
                     </select>
                     
+                    <!-- Chỉ hiển thị nút Lưu cho user khác -->
                     <?php if($user['user_id'] != $_SESSION['user_id']): ?>
-                        <button type="submit" style="font-size: 0.8em; padding: 2px 5px;">Lưu</button>
+                        <!-- Áp dụng class .btn -->
+                        <button type="submit" class="btn btn-primary" style="font-size: 0.9em; padding: 5px 10px;">Lưu</button>
                     <?php endif; ?>
                 </form>
             </td>
-            <td><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
+            <td style="white-space: nowrap;"><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></td>
             <td>
+                <!-- Áp dụng class .btn -->
+                <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=editUser&id=<?php echo $user['user_id']; ?>"
+                   class="btn btn-secondary" style="font-size: 0.9em; padding: 5px;">
+                    Sửa
+                </a>
+                
                 <?php if($user['user_id'] != $_SESSION['user_id']): ?>
                     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=deleteUser&id=<?php echo $user['user_id']; ?>" 
                        onclick="return confirm('Cảnh báo: Bạn có chắc muốn XÓA user này? (Tác vụ không thể hoàn tác)');" 
-                       style="color: red;">
+                       class="btn btn-danger" style="font-size: 0.9em; padding: 5px; margin-left: 5px;">
                         Xóa
                     </a>
                 <?php else: ?>
-                    (Bạn)
+                    <span style="font-size: 0.9em; margin-left: 10px;">(Bạn)</span>
                 <?php endif; ?>
             </td>
         </tr>
