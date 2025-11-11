@@ -49,16 +49,31 @@ class AdminController {
  */
     public function index() {
         global $conn;
-
-        // 1. Lấy thống kê đơn hàng
+        
+        // 1. Lấy thống kê (đã có)
         $orderModel = new Order($conn);
         $order_stats = $orderModel->getOrderStats();
-
-        // 2. Lấy thống kê user
+        
+        // 2. Lấy thống kê user (đã có)
         $userModel = new User($conn);
         $new_users = $userModel->countNewUsers();
+        
+        // 3. THÊM MỚI: Lấy dữ liệu cho biểu đồ
+        $chart_data_raw = $orderModel->getRevenueLast7Days();
+        
+        // 4. Chuẩn bị dữ liệu cho Chart.js
+        $chart_labels = [];
+        $chart_values = [];
+        foreach ($chart_data_raw as $data) {
+            $chart_labels[] = date('d/m', strtotime($data['order_date']));
+            $chart_values[] = $data['daily_revenue'];
+        }
+        
+        // Chuyển mảng PHP thành chuỗi JSON an toàn cho JS
+        $chart_labels_json = json_encode($chart_labels);
+        $chart_values_json = json_encode($chart_values);
 
-        // 3. Tải view dashboard
+        // 5. Tải view dashboard (truyền thêm 2 biến JSON)
         require_once ROOT_PATH . '/app/views/admin/dashboard.php';
     }
     public function listProducts() {

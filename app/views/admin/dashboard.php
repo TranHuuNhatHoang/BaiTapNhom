@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <h1 style="color: blue;">Trang Quản trị Admin</h1>
 <h2>Tổng quan (Dashboard)</h2>
 
@@ -34,3 +36,44 @@
         <small>(Đăng ký trong 7 ngày qua)</small>
     </div>
 </div>
+
+<hr>
+<h3>Doanh thu 7 ngày qua (Đơn đã hoàn thành)</h3>
+<div style="width: 100%; max-width: 800px;">
+    <canvas id="revenueChart"></canvas>
+</div>
+
+<script>
+    // Lấy dữ liệu từ PHP (Controller đã truyền)
+    const labels = <?php echo $chart_labels_json; ?>;
+    const dataValues = <?php echo $chart_values_json; ?>;
+
+    const data = {
+        labels: labels,
+        datasets: [{
+            label: 'Doanh thu (VND)',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1,
+            data: dataValues,
+        }]
+    };
+
+    const config = {
+        type: 'bar', // Kiểu biểu đồ (bar, line, pie...)
+        data: data,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    // Vẽ biểu đồ
+    new Chart(
+        document.getElementById('revenueChart'),
+        config
+    );
+</script>
