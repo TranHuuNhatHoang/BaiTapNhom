@@ -156,7 +156,23 @@ $stmt->bind_param("idssss", $user_id, $total_amount, $shipping_address, $shippin
         
         return $result->num_rows > 0; // Trả về true nếu tìm thấy (đã mua)
     }
-
+ public function getRevenueLast7Days() {
+        $sql = "SELECT 
+                    DATE(created_at) as order_date, 
+                    SUM(total_amount) as daily_revenue
+                FROM 
+                    orders
+                WHERE 
+                    order_status = 'completed' 
+                    AND created_at >= CURDATE() - INTERVAL 7 DAY
+                GROUP BY 
+                    DATE(created_at)
+                ORDER BY 
+                    order_date ASC";
+        
+        $result = $this->conn->query($sql);
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 
 }
 ?>
