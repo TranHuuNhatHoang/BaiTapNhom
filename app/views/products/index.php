@@ -1,4 +1,20 @@
 <div class="product-list">
+    <!-- 
+    ============================================================
+     THÊM MỚI (Người 3 - GĐ21): Banner Trang chủ
+    ============================================================
+    -->
+    <div class="homepage-banner">
+        <div class="banner-content">
+            <h1>Siêu Sale Laptop Gaming</h1>
+            <p>Giảm giá lên đến 30% - Nhanh tay săn ngay!</p>
+            <!-- (Link này trỏ đến trang Category "Laptop Gaming" (ID=1)) -->
+            <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=category&id=1" class="btn btn-primary" style="font-size: 1.1em; padding: 12px 25px;">
+                Xem Ngay
+            </a>
+        </div>
+    </div>
+    <!-- KẾT THÚC BANNER -->
     <?php if (isset($featured_products) && !empty($featured_products)): ?>
     <div class="featured-products">
         <h2>Sản phẩm Nổi bật</h2>
@@ -23,6 +39,7 @@
     </div>
     <?php endif; ?>
     <h1>Danh sách Sản phẩm</h1>
+    
 
 
 <div class="filter-sort-form">

@@ -18,9 +18,10 @@
     <script src="<?php echo BASE_URL; ?>public/js/main.js" defer></script>
 </head>
 <body>
+    <?php include 'navbar.php'; // Tải thanh điều hướng ?>
     <div class="container">
         
-        <?php include 'navbar.php'; // Tải thanh điều hướng ?>
+        
         
         <?php
         // Đảm bảo functions.php đã được tải (an toàn)
