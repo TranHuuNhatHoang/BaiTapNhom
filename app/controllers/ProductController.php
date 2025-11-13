@@ -7,42 +7,39 @@ class ProductController {
     /**
      * CẬP NHẬT (NGƯỜI 2): Thêm $price_range
      */
+    /**
+     * CẬP NHẬT: Hàm index (BÂY GIỜ LÀ TRANG SẢN PHẨM)
+     * (Đã xóa logic $featured_products)
+     */
     public function index() {
         global $conn; 
         $productModel = new Product($conn);
 
         // 1. Cài đặt Phân trang
-        $products_per_page = 6; // Số sản phẩm trên mỗi trang
+        $products_per_page = 4; // (Hoặc 6, tùy code cũ của bạn)
         $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         if ($current_page < 1) $current_page = 1;
 
-        // --- LẤY BIẾN LỌC & SẮP XẾP ---
+        // 2. Lấy Lọc và Sắp xếp (Code GĐ 19)
         $sort = isset($_GET['sort']) ? $_GET['sort'] : 'created_at DESC';
-        $price_range = isset($_GET['price']) ? $_GET['price'] : null; // <-- THÊM MỚI
-        // --- KẾT THÚC ---
+        $price_range = isset($_GET['price']) ? $_GET['price'] : null;
 
-        // --- THÊM MỚI (Người 2 - GĐ16) ---
-        // Chỉ lấy SP nổi bật khi không lọc/sắp xếp và ở trang 1
-        $featured_products = [];
-        if ($current_page == 1 && empty($price_range) && empty($_GET['sort'])) {
-            $featured_products = $productModel->getFeaturedProducts(4); // Lấy 4 SP
-        }
-        // --- KẾT THÚC THÊM MỚI ---
-
-        // 2. Lấy tổng số sản phẩm (ĐÃ LỌC)
-        $total_products = $productModel->countAllProducts($price_range); // <-- SỬA
+        // 3. Lấy tổng số sản phẩm (Đã có lọc giá)
+        $total_products = $productModel->countAllProducts($price_range);
         
-        // 3. Tính tổng số trang
+        // 4. Tính tổng số trang
         $total_pages = ceil($total_products / $products_per_page);
         if ($current_page > $total_pages && $total_products > 0) $current_page = $total_pages;
 
-        // 4. Tính offset (vị trí bắt đầu)
+        // 5. Tính offset
         $offset = ($current_page - 1) * $products_per_page;
 
-        // 5. Gọi Model (truyền thêm $sort và $price_range)
-        $products = $productModel->getAllProducts($products_per_page, $offset, $sort, $price_range); // <-- SỬA
+        // --- Logic $featured_products ĐÃ BỊ XÓA KHỎI ĐÂY ---
 
-        // 6. Tải View (truyền tất cả biến)
+        // 6. Gọi Model để lấy dữ liệu (Đã có lọc/sắp xếp)
+        $products = $productModel->getAllProducts($products_per_page, $offset, $sort, $price_range);
+
+        // 7. Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/products/index.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';

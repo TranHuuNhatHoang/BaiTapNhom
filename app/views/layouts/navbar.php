@@ -43,6 +43,11 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
     <div class="navbar-container">
     <ul>
         <li><a href="<?php echo BASE_URL; ?>">Trang chủ</a></li>
+        <li>
+                <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=index">
+                    Sản phẩm
+                </a>
+        </li>
         
         <!-- Dropdown Danh mục (Đã dọn dẹp) -->
         <li class="dropdown">
