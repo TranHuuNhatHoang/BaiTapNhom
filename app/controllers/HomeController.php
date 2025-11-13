@@ -1,9 +1,9 @@
 <?php
 // Tải các Model cần thiết
 require_once ROOT_PATH . '/app/models/Product.php';
-require_once ROOT_PATH . '/app/models/Category.php'; // Cần cho navbar
-require_once ROOT_PATH . '/app/models/Brand.php'; // Cần cho navbar
-require_once ROOT_PATH . '/config/functions.php'; // Cần cho flash message
+require_once ROOT_PATH . '/app/models/Category.php'; 
+require_once ROOT_PATH . '/app/models/Brand.php'; 
+require_once ROOT_PATH . '/config/functions.php'; 
 
 class HomeController {
 
@@ -15,13 +15,19 @@ class HomeController {
         global $conn; 
         $productModel = new Product($conn);
 
-        // 1. Lấy Sản phẩm Nổi bật (Logic này được copy từ ProductController)
-        $featured_products = $productModel->getFeaturedProducts(4); // Lấy 4 SP
+        // Lấy 8 sản phẩm nổi bật để chia cho 2 khu vực (Featured và Gaming)
+        $all_products = $productModel->getFeaturedProducts(8); 
         
-        // 2. Tải View
+        // 1. Chia dữ liệu: 4 sản phẩm nổi bật chính
+        $featured_products = array_slice($all_products, 0, 4);
+        
+        // 2. Mô phỏng 4 sản phẩm Gaming bằng 4 sản phẩm tiếp theo
+        // (Sử dụng array_slice để tránh lỗi "Undefined method")
+        $gaming_products = array_slice($all_products, 4, 4);
+
+        // 3. Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/home/index.php'; // Tải View MỚI
+        require_once ROOT_PATH . '/app/views/home/index.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 }
-?>
