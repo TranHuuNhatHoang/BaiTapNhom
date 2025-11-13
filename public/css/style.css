@@ -176,17 +176,45 @@ background-color: #f9f9f9;}
 /* (Bạn có thể sửa lại màu sắc/font chữ sau) */
 
 /* Thanh nav chính */
+/* --- CSS cho Navbar (ĐÃ CẬP NHẬT STICKY) --- */
+
+/* Thanh nav chính */
 nav {
     background-color: #333;
-    padding: 0 15px;
+    /* padding: 0 15px; (Xóa padding này) */
+    
+    /* ============================================================
+     CẬP NHẬT: Thêm Sticky
+    ============================================================
+    */
+    position: sticky; /* "Dính" */
+    top: 0;           /* Dính vào top 0 */
+    width: 100%;      /* Chiếm toàn bộ chiều rộng */
+    z-index: 1000;    /* Luôn nằm trên cùng */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Thêm bóng mờ */
 }
+
+/* ============================================================
+ THÊM MỚI: Class để căn giữa nội dung navbar
+============================================================
+*/
+.navbar-container {
+    max-width: 1200px;  /* Chiều rộng tối đa (GIỐNG .container) */
+    margin: 0 auto;     /* Tự động căn giữa */
+    padding: 0 20px;    /* Padding 2 bên (GIỐNG .container) */
+    display: flex;      /* (Cần thiết để <ul> bên trong hoạt động) */
+}
+
+/* Cập nhật nav ul (xóa padding/margin đã chuyển lên container) */
 nav ul {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     align-items: center; /* Căn giữa các mục */
+    width: 100%; /* Đảm bảo <ul> chiếm hết .navbar-container */
 }
+
 nav ul li {
     position: relative; /* Quan trọng cho dropdown */
 }
@@ -299,4 +327,63 @@ nav ul li .dropdown-menu li a:hover {
     border-top: 1px solid #444;
     font-size: 0.9em;
     color: #888;
+}
+/* --- GIAI ĐOẠN 21 (Người 3): CSS cho Banner (ĐÃ NÂNG CẤP) --- */
+
+.homepage-banner {
+    position: relative; /* Dùng cho text overlay */
+    width: 100%;
+    height: 400px; /* Tăng chiều cao 1 chút */
+    
+    /* * Thay đổi quan trọng: 
+     * 1. Dùng ảnh nền thật (từ Pexels)
+     * 2. Thêm một lớp gradient đen mờ từ trái sang phải
+     * (để chữ bên trái nổi bật, ảnh bên phải rõ nét)
+     */
+    background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.7) 25%, rgba(0, 0, 0, 0) 70%), 
+        url('https://images.pexels.com/photos/38568/apple-imac-ipad-workplace-38568.jpeg');
+    
+    background-size: cover;
+    background-position: center; /* Căn giữa ảnh */
+    border-radius: 8px; /* Bo góc */
+    margin-bottom: 30px; /* Khoảng cách với nội dung bên dưới */
+    
+    display: flex;
+    align-items: center; /* Căn giữa nội dung theo chiều dọc */
+    padding: 0 5%; /* Thêm padding 2 bên */
+}
+
+.banner-content {
+    text-align: left; /* Đổi sang căn lề TRÁI */
+    color: white;
+    padding: 0; /* Xóa padding cũ */
+    background-color: transparent; /* Xóa nền đen cũ */
+    max-width: 50%; /* Giới hạn chiều rộng của chữ */
+}
+
+.banner-content h1 {
+    font-size: 3em; /* Làm chữ to, ấn tượng hơn */
+    margin-bottom: 15px;
+    font-weight: 700;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5); /* Thêm bóng cho dễ đọc */
+}
+
+.banner-content p {
+    font-size: 1.3em;
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+}
+
+/* Nâng cấp nút bấm trên banner */
+.banner-content .btn-primary {
+    font-size: 1.1em;
+    padding: 12px 25px;
+    /* Thêm hiệu ứng khi hover */
+    transform: scale(1);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.banner-content .btn-primary:hover {
+    transform: scale(1.05); /* Phóng to 1 chút */
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
 }

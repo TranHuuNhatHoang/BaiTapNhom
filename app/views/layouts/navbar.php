@@ -40,6 +40,7 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
 ============================================================
 -->
 <nav>
+    <div class="navbar-container">
     <ul>
         <li><a href="<?php echo BASE_URL; ?>">Trang chủ</a></li>
         
@@ -146,4 +147,5 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
         <?php endif; ?>
         
     </ul>
+    </div>
 </nav>
