@@ -231,3 +231,72 @@ nav ul li .dropdown-menu li a {
 nav ul li .dropdown-menu li a:hover {
     background-color: #ddd;
 }
+
+/* --- GIAI ĐOẠN 21 (Người 2): CSS cho Footer --- */
+
+.site-footer {
+    background-color: #2a2a2a; /* Nền đen/xám tối */
+    color: #ccc; /* Chữ màu xám nhạt */
+    padding: 40px 0;
+    margin-top: 30px;
+}
+
+/* * .container bên trong footer
+ * (Chúng ta dùng 1 .container mới để nó không bị ảnh hưởng 
+ * bởi .container của trang chính)
+ */
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap; /* Cho phép xuống dòng trên mobile */
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer-column {
+    flex: 1; /* Các cột tự chia đều */
+    min-width: 200px; /* Độ rộng tối thiểu trước khi xuống dòng */
+}
+
+.footer-column h4 {
+    color: #ffffff; /* Tiêu đề màu trắng */
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.footer-column p {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 8px;
+}
+
+.footer-column ul li a {
+    color: #ccc; /* Link màu xám nhạt */
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-column ul li a:hover {
+    color: #ffffff; /* Link sáng lên khi hover */
+    text-decoration: none;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    margin-top: 20px;
+    border-top: 1px solid #444;
+    font-size: 0.9em;
+    color: #888;
+}
