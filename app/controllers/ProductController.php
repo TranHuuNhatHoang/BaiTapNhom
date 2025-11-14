@@ -16,7 +16,7 @@ class ProductController {
         $productModel = new Product($conn);
 
         // 1. Cài đặt Phân trang
-        $products_per_page = 4; // (Hoặc 6, tùy code cũ của bạn)
+        $products_per_page = 8; // (Hoặc 6, tùy code cũ của bạn)
         $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         if ($current_page < 1) $current_page = 1;
 

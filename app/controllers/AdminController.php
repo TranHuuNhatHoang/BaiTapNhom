@@ -172,11 +172,24 @@ class AdminController {
     /**
      * HÀM update (Không đổi - Xử lý)
      */
+    /**
+     * HÀM update (CẬP NHẬT: Sửa lỗi chuyển hướng Phân trang)
+     */
     public function update() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['product_id'];
             if ($id <= 0) die("ID không hợp lệ.");
             
+            // ============================================================
+            // BƯỚC 2.1: Lấy URL quay lại từ Form
+            // ============================================================
+            $return_url = $_POST['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
+            // (Đảm bảo an toàn)
+            if (strpos($return_url, 'controller=admin') === false) {
+                 $return_url = BASE_URL . 'index.php?controller=admin&action=listProducts';
+            }
+            // ============================================================
+
             $new_image_name = $_POST['current_main_image']; // Giữ ảnh cũ
             
             if (isset($_FILES['main_image']) && $_FILES['main_image']['error'] === UPLOAD_ERR_OK) {
@@ -196,8 +209,13 @@ class AdminController {
             $productModel = new Product($conn);
             
             if ($productModel->updateProduct($id, $name, $price, $brand_id, $category_id, $quantity, $description, $main_image)) {
-                header("Location: " . BASE_URL . "index.php?controller=admin&action=listProducts");
+                
+                // ============================================================
+                // BƯỚC 2.2: Chuyển hướng về URL đã lưu (thay vì trang 1)
+                // ============================================================
+                header("Location: " . $return_url);
                 exit;
+                
             } else {
                 die("Lỗi khi cập nhật sản phẩm.");
             }
@@ -481,17 +499,28 @@ class AdminController {
     /**
      * HÀM manageImages (Sửa lỗi: Thêm Header/Footer)
      */
+    /**
+     * CẬP NHẬT (Sửa lỗi Phân trang): Hiển thị trang Quản lý Ảnh
+     */
     public function manageImages() {
         $product_id = (int)$_GET['product_id'];
         if ($product_id <= 0) die("ID sản phẩm không hợp lệ.");
+
+        // BƯỚC 2.1: Lấy và xác thực return_url
+        $return_url = $_GET['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
+        // (An toàn: Đảm bảo link "Quay lại" vẫn ở trong trang admin listProducts)
+        if (strpos($return_url, 'action=listProducts') === false) {
+             $return_url = BASE_URL . 'index.php?controller=admin&action=listProducts';
+        }
+
         global $conn;
-        
         $productModel = new Product($conn);
         $product = $productModel->getProductById($product_id);
+        
         $imageModel = new ProductImage($conn);
         $images = $imageModel->getImagesByProductId($product_id);
         
-        // SỬA LỖI: Thêm Header/Footer
+        // Tải View (và truyền $return_url)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/product_images.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
@@ -500,16 +529,27 @@ class AdminController {
     /**
      * HÀM uploadImage (Không đổi - Xử lý)
      */
+    /**
+     * CẬP NHẬT (Sửa lỗi Phân trang): Xử lý Upload ảnh phụ
+     */
     public function uploadImage() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $product_id = (int)$_POST['product_id'];
+            
+            // BƯỚC 2.2: Lấy return_url từ input hidden
+            $return_url = $_POST['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
+            
             $new_image_name = $this->handleUpload('product_image_file', '/public/uploads/');
+            
             if ($product_id > 0 && $new_image_name) {
                 global $conn;
                 $imageModel = new ProductImage($conn);
                 $imageModel->addImage($product_id, $new_image_name);
             }
-            header("Location: " . BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id);
+            
+            // Tải lại trang quản lý (TRUYỀN LẠI return_url)
+            $redirect_to = BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id . "&return_url=" . urlencode($return_url);
+            header("Location: " . $redirect_to);
             exit;
         }
     }
@@ -517,18 +557,31 @@ class AdminController {
     /**
      * HÀM deleteImage (Không đổi - Xử lý)
      */
+    /**
+     * CẬP NHẬT (Sửa lỗi Phân trang): Xử lý Xóa ảnh phụ
+     */
     public function deleteImage() {
         $image_id = (int)$_GET['image_id'];
-        $product_id = (int)$_GET['product_id']; 
+        $product_id = (int)$_GET['product_id']; // Để quay lại
+        
+        // BƯỚC 2.3: Lấy return_url từ GET
+        $return_url = $_GET['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
+
         global $conn;
         $imageModel = new ProductImage($conn);
+        
         $image = $imageModel->getImageById($image_id);
         if ($image) {
             $file_path = ROOT_PATH . '/public/uploads/' . $image['image_url'];
-            if (file_exists($file_path)) unlink($file_path);
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
             $imageModel->deleteImage($image_id);
         }
-        header("Location: " . BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id);
+        
+        // Tải lại trang quản lý (TRUYỀN LẠI return_url)
+        $redirect_to = BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id . "&return_url=" . urlencode($return_url);
+        header("Location: " . $redirect_to);
         exit;
     }
 
