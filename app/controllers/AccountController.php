@@ -158,9 +158,10 @@ class AccountController {
         require_once ROOT_PATH . '/app/views/account/order_detail.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
+    
     /**
      * HÀM HELPER: Hàm Hỗ trợ Xử lý Upload File
-     * (ĐÃ SỬA LỖI)
+     * (Giữ nguyên)
      */
     private function handleUpload($file_input_name, $upload_dir) {
         // Kiểm tra xem có file được tải lên không và không có lỗi
@@ -172,11 +173,8 @@ class AccountController {
             // Chỉ cho phép định dạng ảnh
             $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             
-            // === SỬA LỖI Ở ĐÂY ===
             // Dùng $_FILES['...']['type'] thay vì mime_content_type()
-            // vì nó đáng tin cậy hơn trên các cấu hình XAMPP khác nhau
             $file_type = $_FILES[$file_input_name]['type'];
-            // === KẾT THÚC SỬA LỖI ===
 
             if (!in_array($file_type, $allowed_mime_types)) {
                 return null; // Không phải file ảnh
@@ -197,8 +195,8 @@ class AccountController {
     }
     
     /**
-     * HÀM (Giai đoạn 19): Xử lý Upload Avatar
-     * (Hàm này giữ nguyên, nó sẽ hoạt động đúng khi 'handleUpload' được sửa)
+     * HÀM Xử lý Upload Avatar
+     * ĐÃ SỬA LỖI: Cập nhật $_SESSION['user_avatar'] đúng cách
      */
     public function updateAvatar() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -211,24 +209,37 @@ class AccountController {
             $current_avatar = $user['avatar'];
             
             // 1. Xử lý upload ảnh
-            $new_avatar_name = $this->handleUpload('avatar_file', '/public/uploads/avatars/');
+            $upload_dir = '/public/uploads/avatars/';
+            $new_avatar_name = $this->handleUpload('avatar_file', $upload_dir);
             
             if ($new_avatar_name) {
                 // 2. Cập nhật CSDL
-                $userModel->updateAvatar($user_id, $new_avatar_name);
+                if ($userModel->updateAvatar($user_id, $new_avatar_name)) {
+                    
+                    // 3. Cập nhật Session
+                    // CHỈ GÁN VÀO SESSION KHI CẬP NHẬT CSDL THÀNH CÔNG
+                    $_SESSION['user_avatar'] = $new_avatar_name;
                 
-                // 3. Cập nhật Session (nếu có)
-                $_SESSION['user_avatar'] = $new_avatar_name;
-                
-                // 4. Xóa avatar cũ (nếu có)
-                if (!empty($current_avatar) && file_exists(ROOT_PATH . '/public/uploads/avatars/' . $current_avatar)) {
-                    unlink(ROOT_PATH . '/public/uploads/avatars/' . $current_avatar);
+                    // 4. Xóa avatar cũ (nếu có)
+                    // Kiểm tra cả $current_avatar có tồn tại trong CSDL VÀ file có tồn tại
+                    if (!empty($current_avatar) && $current_avatar !== $new_avatar_name) {
+                        $old_avatar_path = ROOT_PATH . $upload_dir . $current_avatar;
+                        if (file_exists($old_avatar_path)) {
+                            unlink($old_avatar_path);
+                        }
+                    }
+                    
+                    set_flash_message("Cập nhật ảnh đại diện thành công!", 'success');
+                } else {
+                    // Lỗi DB: Xóa file vừa upload để tránh rác
+                    $uploaded_file_path = ROOT_PATH . $upload_dir . $new_avatar_name;
+                    if (file_exists($uploaded_file_path)) {
+                        unlink($uploaded_file_path);
+                    }
+                    set_flash_message("Lỗi CSDL khi cập nhật ảnh đại diện.", 'error');
                 }
-                
-                set_flash_message("Cập nhật ảnh đại diện thành công!", 'success');
-                
             } else {
-                // Lỗi này xảy ra do hàm handleUpload trả về null
+                // Lỗi này xảy ra do hàm handleUpload trả về null (lỗi file/format)
                 set_flash_message("Upload ảnh thất bại. Chỉ chấp nhận file JPG, PNG, GIF.", 'error');
             }
             
