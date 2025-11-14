@@ -79,12 +79,11 @@ class User {
         
         return $result->fetch_assoc();
     }
-
     
      // HÀM MỚI CỦA BẠN: Cập nhật thông tin (không đổi mật khẩu)
      
     
-    public function updateProfile($user_id, $full_name, $phone, $address, $province) {
+public function updateProfile($user_id, $full_name, $phone, $address, $province) {
         $sql = "UPDATE users SET full_name = ?, phone = ?, address = ?, province = ?
                 WHERE user_id = ?";
         
@@ -213,7 +212,7 @@ class User {
     /**
      * HÀM BỊ THIẾU (Giai đoạn 19 - Người 3): Cập nhật Avatar
      */
-    public function updateAvatar($user_id, $avatar_filename) {
+ public function updateAvatar($user_id, $avatar_filename) {
         $sql = "UPDATE users SET avatar = ? WHERE user_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("si", $avatar_filename, $user_id);
