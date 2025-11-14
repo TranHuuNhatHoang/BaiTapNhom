@@ -12,6 +12,9 @@
 $is_edit_mode = isset($product) && $product;
 $page_title = $is_edit_mode ? "Sửa Sản phẩm" : "Thêm Sản phẩm mới";
 
+// (Lấy URL của trang trước đó, ví dụ: ...listProducts&page=3)
+$return_url = $_SERVER['HTTP_REFERER'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
+
 // Đặt action cho form (trỏ đến 'update' hoặc 'store')
 $form_action = $is_edit_mode 
     ? (BASE_URL . "index.php?controller=admin&action=update") 
@@ -21,7 +24,7 @@ $form_action = $is_edit_mode
 <h1><?php echo $page_title; ?></h1>
 
 <!-- Áp dụng class .btn -->
-<a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" class="btn btn-secondary" style="margin-bottom: 15px;">
+<a href="<?php echo htmlspecialchars($return_url); ?>" class="btn btn-secondary" style="margin-bottom: 15px;">
     &laquo; Quay lại danh sách
 </a>
 <hr>
@@ -38,6 +41,8 @@ $form_action = $is_edit_mode
     <?php if ($is_edit_mode): ?>
         <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
     <?php endif; ?>
+
+    <input type="hidden" name="return_url" value="<?php echo htmlspecialchars($return_url); ?>">
 
     <!-- Áp dụng class .form-group -->
     <div class="form-group">

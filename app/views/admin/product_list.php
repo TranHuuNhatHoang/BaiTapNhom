@@ -85,10 +85,12 @@
                        class="btn btn-danger" style="font-size: 0.9em; padding: 5px;">
                         Xóa
                     </a>
-                    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=manageImages&product_id=<?php echo $product['product_id']; ?>" 
-                       class="btn btn-primary" style="font-size: 0.9em; padding: 5px;">
-                        Quản lý Ảnh
-                    </a>
+                    <?php
+                    // Lấy URL hiện tại (bao gồm cả ?page=3) và mã hóa nó
+                    $current_list_url = urlencode($_SERVER['REQUEST_URI']);
+                    ?>
+                    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=manageImages&product_id=<?php echo $product['product_id']; ?>&return_url=<?php echo $current_list_url; ?>" 
+                    class="btn btn-primary" style="font-size: 0.9em; padding: 5px;">Quản lý Ảnh</a>
                 </td>
             </tr>
             <?php endforeach; ?>
