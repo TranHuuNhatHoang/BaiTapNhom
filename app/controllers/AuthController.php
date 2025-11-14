@@ -135,6 +135,10 @@ class AuthController {
     /**
      * HÀM Xử lý Gửi link Reset
      */
+    /**
+     * HÀM Xử lý Gửi link Reset
+     * (ĐÃ SỬA LỖI: Thêm $reset_link vào Flash Message)
+     */
     public function handleForgotPassword() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $_POST['email'];
@@ -143,23 +147,27 @@ class AuthController {
             $token = $userModel->generatePasswordResetToken($email);
             
             if ($token) {
-                // GIẢ LẬP GỬI EMAIL
+                // 1. Tạo lại đường link đầy đủ
                 $reset_link = BASE_URL . "index.php?controller=auth&action=resetPassword&token=" . $token;
                 
-                // echo "GỬI MAIL (Giả lập): ..."; // CŨ
-                // Thay vì echo, chúng ta báo thành công và chuyển hướng
-                // Trong dự án thật, bạn sẽ gửi mail $reset_link
-                // Ở đây, chúng ta báo user kiểm tra CSDL (hoặc echo link)
+                // 2. Tạo tin nhắn (bao gồm cả link HTML)
+                // (Vì hàm display_flash_message của chúng ta in HTML, 
+                // thẻ <br> và <a> sẽ hoạt động)
+                $message = "Yêu cầu thành công. (Đây là Giả lập Gửi Mail): <br>" .
+                           "Vui lòng nhấn vào link sau để reset: <br>" .
+                           "<a href='$reset_link' style='font-weight: bold;'>Nhấn vào đây để đặt lại mật khẩu</a>";
+
+                // 3. Đặt tin nhắn flash
+                set_flash_message($message, 'success'); // Dùng 'success' cho nổi bật
                 
-                set_flash_message("Yêu cầu thành công. Nếu email tồn tại, link reset (giả lập) đã được tạo. Token: " . $token, 'info'); // MỚI
-                header("Location: " . BASE_URL . "index.php?controller=auth&action=forgotPassword");
-                exit;
             } else {
-                // echo "Không tìm thấy email..."; // CŨ
-                set_flash_message("Không tìm thấy email hoặc có lỗi. Vui lòng thử lại.", 'error'); // MỚI
-                header("Location: " . BASE_URL . "index.php?controller=auth&action=forgotPassword");
-                exit;
+                // Tin nhắn lỗi (không đổi)
+                set_flash_message("Không tìm thấy email hoặc có lỗi. Vui lòng thử lại.", 'error');
             }
+            
+            // Chuyển hướng về trang quên mật khẩu (để hiển thị tin nhắn)
+            header("Location: " . BASE_URL . "index.php?controller=auth&action=forgotPassword");
+            exit;
         }
     }
     

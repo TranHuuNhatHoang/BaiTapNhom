@@ -43,7 +43,7 @@
         
         <!-- Dòng Copyright ở đáy -->
         <div class="footer-bottom">
-            &copy; <?php echo date('Y'); ?> Bản quyền thuộc về BaiTapNhom (Designed by Nhom 3)
+            &copy; <?php echo date('Y'); ?> Bản quyền thuộc về BaiTapNhom 
         </div>
     </footer>
     <!-- KẾT THÚC FOOTER MỚI -->
