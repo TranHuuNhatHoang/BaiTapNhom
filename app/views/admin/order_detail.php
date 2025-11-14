@@ -36,6 +36,44 @@
         <p><strong>Ghi chú:</strong> <?php echo htmlspecialchars($order['notes'] ?? 'Không có'); ?></p>
         
         <hr>
+        <!-- 
+        ============================================================
+         CẬP NHẬT (BƯỚC 3 - GĐ23): Thêm Nút "Kiểm tra Trạng thái"
+        ============================================================
+        -->
+        <hr>
+        <h4>Thông tin Vận chuyển</h4>
+        
+        <?php if (!empty($order['tracking_code'])): ?>
+            <p>
+                <strong>Hãng vận chuyển:</strong> <?php echo htmlspecialchars($order['shipping_provider']); ?><br>
+                <strong>Mã vận đơn:</strong> <?php echo htmlspecialchars($order['tracking_code']); ?>
+            </p>
+            
+            <?php
+            // (Link tra cứu cũ, vẫn giữ)
+            $tracking_link = 'https://tracking.ghn.dev/?order_code=' . $order['tracking_code'];
+            ?>
+            <a href="<?php echo $tracking_link; ?>" class="btn btn-success" target="_blank" style="margin-right: 10px;">
+                Tra cứu (Trang GHN)
+            </a>
+
+            <!-- NÚT MỚI (AJAX) -->
+            <button id="check-tracking-btn" 
+                    data-order-code="<?php echo $order['tracking_code']; ?>" 
+                    class="btn btn-primary">
+                Kiểm tra Trạng thái (Tại đây)
+            </button>
+            
+            <!-- DIV MỚI (Để chứa kết quả AJAX) -->
+            <div id="tracking-log-results" style="margin-top: 15px; background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">
+                <!-- JavaScript (ở main.js) sẽ điền kết quả vào đây -->
+            </div>
+            
+        <?php else: ?>
+            <p>Chưa có thông tin vận chuyển. (Hãy đổi trạng thái sang "Đang giao" để tạo vận đơn tự động).</p>
+        <?php endif; ?>
+        <!-- KẾT THÚC CẬP NHẬT -->
         
         <!-- HIỂN THỊ CHI TIẾT THANH TOÁN (GĐ 18) -->
         <h4 style="display: flex; justify-content: space-between;">
