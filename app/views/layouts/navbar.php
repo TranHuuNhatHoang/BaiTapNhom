@@ -23,22 +23,21 @@ if (isset($_SESSION['cart']) && is_array($_SESSION['cart'])) {
 }
 
 // --- Lấy Avatar User (nếu có) ---
+// ĐÃ SỬA LỖI LOGIC: Kiểm tra file tồn tại trước khi gán
 $nav_avatar_path = 'public/images/default_avatar.png'; // Ảnh mặc định
+
 if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
-    $avatar_file = ROOT_PATH . '/public/uploads/avatars/' . $_SESSION['user_avatar'];
-    if (file_exists($avatar_file)) {
-        $nav_avatar_path = 'public/uploads/avatars/' . $_SESSION['user_avatar'];
-    }
+    $avatar_file_name = $_SESSION['user_avatar'];
+    $avatar_file_full_path = ROOT_PATH . '/public/uploads/avatars/' . $avatar_file_name;
+    
+    // Chỉ sử dụng avatar trong Session nếu file thực sự tồn tại
+    if (file_exists($avatar_file_full_path)) {
+        $nav_avatar_path = 'public/uploads/avatars/' . $avatar_file_name;
+    } 
+    // Nếu file không tồn tại, nó sẽ dùng ảnh mặc định ('public/images/default_avatar.png')
 }
 ?>
 
-<!-- 
-============================================================
- CẬP NHẬT (Người 2 - GĐ18):
- - Đã xóa style inline và onmouseover
- - Đã thêm class="dropdown" và class="dropdown-menu"
-============================================================
--->
 <nav>
     <div class="navbar-container">
     <ul>
@@ -49,7 +48,6 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
                 </a>
         </li>
         
-        <!-- Dropdown Danh mục (Đã dọn dẹp) -->
         <li class="dropdown">
             <a href="#">Danh mục</a>
             <ul class="dropdown-menu">
@@ -63,7 +61,6 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
             </ul>
         </li>
         
-        <!-- Dropdown Thương hiệu (Đã dọn dẹp) -->
         <li class="dropdown">
             <a href="#">Thương hiệu</a>
             <ul class="dropdown-menu">
@@ -77,25 +74,21 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
             </ul>
         </li>
         
-        <!-- Live Search (GĐ 17 - Giữ nguyên) -->
         <li style="position: relative;"> 
             <form method="GET" action="<?php echo BASE_URL; ?>index.php">
                 <input type="hidden" name="controller" value="product">
                 <input type="hidden" name="action" value="search">
                 
                 <input type="text" id="navbar-search-input" name="query" 
-                       placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                        placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
             </form>
             
-            <!-- Hộp kết quả (CSS cơ bản) -->
             <div id="navbar-search-results" 
-                 style="display: none; position: absolute; top: 100%; left: 0; 
-                        background: white; border: 1px solid #ccc; 
-                        min-width: 400px; z-index: 1000;">
-                <!-- JavaScript sẽ điền kết quả vào đây -->
-            </div>
+                  style="display: none; position: absolute; top: 100%; left: 0; 
+                         background: white; border: 1px solid #ccc; 
+                         min-width: 400px; z-index: 1000;">
+                </div>
             
-            <!-- (Style của Live Search vẫn giữ nguyên) -->
             <style>
                 .search-result-item {
                     display: flex; align-items: center; gap: 10px;
@@ -110,28 +103,21 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
             </style>
         </li>
 
-        <!-- Các mục bên phải -->
-        
-        <!-- Giỏ hàng (Đẩy sang phải) -->
         <li style="margin-left: auto;">
-           <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=index">
-             Giỏ hàng (<span id="cart-count"><?php echo $cart_count; ?></span>)
-           </a>
+            <a href="<?php echo BASE_URL; ?>index.php?controller=cart&action=index">
+              Giỏ hàng (<span id="cart-count"><?php echo $cart_count; ?></span>)
+            </a>
         </li>
         
-        <!-- Logic Đăng nhập / Tài khoản -->
         <?php if (isset($_SESSION['user_id'])): ?>
-            <!-- Đã đăng nhập -->
             <li class="dropdown">
-                <!-- Link Tài khoản (đã có avatar) -->
                 <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=index" 
                    style="display: flex; align-items: center; gap: 8px;">
                     <img src="<?php echo BASE_URL . $nav_avatar_path; ?>" 
-                         style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                          style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
                     <span>Xin chào, <?php echo htmlspecialchars($_SESSION['user_full_name']); ?>!</span>
                 </a>
                 
-                <!-- Dropdown cho User -->
                 <ul class="dropdown-menu">
                     <li><a href="<?php echo BASE_URL; ?>index.php?controller=account&action=index">Tài khoản của tôi</a></li>
                     <li><a href="<?php echo BASE_URL; ?>index.php?controller=account&action=history">Lịch sử Đơn hàng</a></li>
@@ -142,7 +128,6 @@ if (isset($_SESSION['user_avatar']) && !empty($_SESSION['user_avatar'])) {
                 </ul>
             </li>
         <?php else: ?>
-            <!-- Chưa đăng nhập -->
             <li>
                 <a href="<?php echo BASE_URL; ?>index.php?controller=auth&action=login">Đăng nhập</a>
             </li>
