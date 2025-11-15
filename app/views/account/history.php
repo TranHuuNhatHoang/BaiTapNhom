@@ -23,6 +23,7 @@
             <th>Tổng tiền</th>
             <th>Trạng thái</th>
             <th>Địa chỉ giao</th>
+            <th>Theo dõi Vận đơn</th>
             <th>Hành động</th>
         </tr>
     </thead>
@@ -43,7 +44,16 @@
                 <td><?php echo number_format($order['total_amount']); ?> VND</td>
                 
                 <td><?php echo htmlspecialchars($order['order_status']); ?></td>
-                <td><?php echo htmlspecialchars($order['shipping_address']); ?></td>
+                
+                <!-- THÊM MỚI (BƯỚC 7): Cột Tracking -->
+                <td>
+                    <?php if (!empty($order['tracking_code'])): ?>
+                        <strong style="font-size: 0.9em;"><?php echo htmlspecialchars($order['shipping_provider']); ?>:</strong><br>
+                        <span style="font-size: 0.9em;"><?php echo htmlspecialchars($order['tracking_code']); ?></span>
+                    <?php else: ?>
+                        <small>Chưa có</small>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <!-- Áp dụng class .btn -->
                     <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=orderDetail&id=<?php echo $order['order_id']; ?>" 

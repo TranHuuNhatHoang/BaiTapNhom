@@ -7,6 +7,8 @@ require_once ROOT_PATH . '/app/models/Order.php';
 require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/ProductImage.php'; 
 require_once ROOT_PATH . '/app/models/Review.php';
+require_once ROOT_PATH . '/app/services/ShippingService.php';
+require_once ROOT_PATH . '/config/functions.php';
 
 class AdminController {
 
@@ -418,18 +420,59 @@ class AdminController {
     /**
      * HÀM updateOrderStatus (Không đổi - Xử lý)
      */
+    /**
+     * CẬP NHẬT (BƯỚC 5): Tự động gọi API khi chuyển sang "shipped"
+     */
     public function updateOrderStatus() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $order_id = (int)$_POST['order_id'];
             $new_status = $_POST['new_status'];
+            
             global $conn;
             $orderModel = new Order($conn);
-            if ($orderModel->updateOrderStatus($order_id, $new_status)) {
-                header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
-                exit;
-            } else {
-                die("Lỗi khi cập nhật trạng thái đơn hàng.");
+
+            // --- LOGIC MỚI: Tự động gọi API ---
+            
+            // 1. Kiểm tra xem Admin có phải đang muốn "Giao hàng" không
+            if ($new_status == 'shipped') {
+                
+                // 2. Lấy thông tin đầy đủ của đơn hàng
+                $order = $orderModel->getOrderByIdForAdmin($order_id);
+                $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
+                
+                if ($order && !empty($order_details)) {
+                    
+                    // 3. Gọi Service (File bạn tạo ở Bước 3)
+                    $shippingService = new ShippingService();
+                    
+                    // (Lưu ý: Bạn phải dán API Key và Shop ID thật vào ShippingService.php)
+                    $tracking_code = $shippingService->createShipment($order, $order_details);
+                    
+                    if ($tracking_code) {
+                        // 4. THÀNH CÔNG: Cập nhật CSDL
+                        $provider = 'GHN'; // (Vì chúng ta dùng API GHN)
+                        $orderModel->updateTrackingInfo($order_id, $provider, $tracking_code);
+                        
+                        set_flash_message("Tạo vận đơn API thành công! Mã: $tracking_code", 'success');
+                        
+                    } else {
+                        // 5. THẤT BẠI: Báo lỗi, KHÔNG đổi status
+                        set_flash_message("LỖI API: Không thể tạo đơn vận chuyển. Vui lòng kiểm tra lại (địa chỉ, SĐT) hoặc thử lại sau.", 'error');
+                        header("Location: " . BASE_URL . "index.php?controller=admin&action=orderDetail&id=" . $order_id);
+                        exit;
+                    }
+                }
             }
+            // --- KẾT THÚC LOGIC MỚI ---
+
+            // 6. Cập nhật Status (Bất kể là status gì)
+            $orderModel->updateOrderStatus($order_id, $new_status);
+            
+            if (!isset($_SESSION['flash_message'])) {
+                 set_flash_message("Cập nhật trạng thái đơn hàng thành công.", 'success');
+            }
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
+            exit;
         }
     }
 
