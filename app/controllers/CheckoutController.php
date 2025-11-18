@@ -6,6 +6,7 @@ require_once ROOT_PATH . '/app/models/Order.php';
 require_once ROOT_PATH . '/app/models/OrderDetail.php'; 
 // Tải file functions (để dùng set_flash_message)
 require_once ROOT_PATH . '/config/functions.php';
+require_once ROOT_PATH . '/app/services/ZaloPayService.php';
 
 class CheckoutController {
 
@@ -166,6 +167,34 @@ class CheckoutController {
             // 6. Xóa giỏ hàng VÀ XÓA COUPON
             unset($_SESSION['cart']);
             unset($_SESSION['cart_coupon']);
+
+            // === LOGIC MỚI: Kiểm tra phương thức thanh toán ===
+            if ($payment_method == 'zalopay') {
+                $zaloPayService = new ZaloPayService();
+                
+                // --- SỬA LỖI Ở ĐÂY: Khởi tạo User Model ---
+                $userModel = new User($conn); 
+                // ------------------------------------------
+
+                // Lấy thông tin đơn hàng vừa tạo để gửi sang Zalo
+                $orderForZalo = [
+                    'order_id' => $order_id,
+                    'total_amount' => 10000, 
+                    'full_name' => $userModel->getUserById($user_id)['full_name'] // Giờ biến $userModel đã tồn tại
+                ];
+
+                $zaloResult = $zaloPayService->createPayment($orderForZalo);
+
+                if ($zaloResult && isset($zaloResult['order_url'])) {
+                    // Chuyển hướng sang trang thanh toán ZaloPay
+                    header("Location: " . $zaloResult['order_url']);
+                    exit;
+                } else {
+                    set_flash_message("Lỗi tạo cổng thanh toán ZaloPay. Đơn hàng đã được tạo với trạng thái 'Chờ thanh toán'.", 'error');
+                    header("Location: " . BASE_URL . "index.php?controller=checkout&action=success&order_id=" . $order_id);
+                    exit;
+                }
+            }
             
             // 7. Chuyển đến trang Cảm ơn
             set_flash_message("Đặt hàng thành công! Cảm ơn bạn đã mua hàng.", 'success');
