@@ -102,9 +102,13 @@ $provinces = $addressModel->getProvinces(); // Lấy Tỉnh/Thành từ CSDL
                     <input type="radio" id="cod" name="payment_method" value="cod" checked>
                     <label for="cod">Thanh toán khi nhận hàng (COD)</label>
                 </div>
-                <div>
-                    <input type="radio" id="bank" name="payment_method" value="bank_transfer" disabled>
-                    <label for="bank">(Sắp có) Chuyển khoản ngân hàng</label>
+                <!-- THÊM MỚI -->
+                <div style="margin-top: 10px;">
+                    <input type="radio" id="zalopay" name="payment_method" value="zalopay">
+                    <label for="zalopay">
+                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png" height="30" style="vertical-align: middle;">
+                        Thanh toán qua ZaloPay (QR Code)
+                    </label>
                 </div>
             </div>
 
