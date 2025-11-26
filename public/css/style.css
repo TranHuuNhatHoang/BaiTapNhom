@@ -1,3 +1,156 @@
+/* ======================
+   HAMBURGER MENU (RESPONSIVE NAV)
+====================== */
+.navbar-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(40,52,80,0.85);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 10px;
+    z-index: 2001;
+    transition: background 0.2s;
+}
+.navbar-toggle .bar {
+    width: 26px;
+    height: 3.5px;
+    background: #fff;
+    margin: 4px 0;
+    border-radius: 2px;
+    transition: all 0.3s;
+}
+@media (max-width: 900px) {
+    .navbar-toggle {
+        display: flex !important;
+    }
+    .main-navbar {
+        display: none !important;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100vw;
+        background: rgba(40,52,80,0.97);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.13);
+        border-radius: 0 0 18px 18px;
+        z-index: 2000;
+        padding: 18px 0 18px 0;
+        gap: 0;
+    }
+    .main-navbar.open {
+        display: flex !important;
+    }
+    nav ul li {
+        width: 100%;
+        text-align: left;
+    }
+    nav ul li a {
+        padding: 16px 32px;
+        border-radius: 0;
+        font-size: 1.1em;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    nav ul li .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        background: rgba(255,255,255,0.97);
+        border-radius: 0 0 10px 10px;
+    }
+}
+/* ======================
+   SCROLLBAR ĐẸP
+====================== */
+::-webkit-scrollbar {
+    width: 8px;
+    background: #f4f7f6;
+}
+::-webkit-scrollbar-thumb {
+    background: #cfd8dc;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #b0bec5;
+}
+
+/* ======================
+   ALERT/THÔNG BÁO
+====================== */
+.alert {
+    padding: 15px 20px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+    font-weight: 500;
+    background: linear-gradient(90deg, #e3ffe6 0%, #f4f7f6 100%);
+    color: #28a745;
+    box-shadow: 0 2px 8px rgba(40,167,69,0.07);
+    animation: fadeIn 0.7s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+/* ======================
+   MODAL/POPUP
+====================== */
+.modal {
+    background: rgba(40,52,80,0.18);
+    backdrop-filter: blur(2px);
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px 24px;
+    box-shadow: 0 8px 32px rgba(40,52,80,0.18);
+    animation: modalShow 0.3s;
+}
+@keyframes modalShow {
+    from { opacity: 0; transform: scale(0.95);}
+    to { opacity: 1; transform: scale(1);}
+}
+
+/* ======================
+   LOADER/SPINNER
+====================== */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #28a745;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+@keyframes spin {
+    100% { transform: rotate(360deg);}
+}
+
+/* ======================
+   RESPONSIVE MOBILE
+====================== */
+@media (max-width: 768px) {
+    .container, .footer-container, .brand-grid, .selling-points {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    .homepage-banner {
+        height: 220px;
+        padding: 0 2%;
+    }
+    .banner-content {
+        max-width: 100%;
+        font-size: 0.95em;
+    }
+}
 /* 1. Reset và Thiết lập Cơ bản */
 * {
     box-sizing: border-box;
@@ -14,6 +167,19 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
+    .site-footer {
+        /* Glassmorphism + Blur + Gradient */
+        background: rgba(34, 40, 49, 0.72);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.13);
+        border-radius: 18px 18px 0 0;
+        border: 1px solid rgba(255,255,255,0.10);
+        color: #ccc;
+        padding: 40px 0;
+        margin-top: 30px;
+        transition: background 0.4s cubic-bezier(.4,2,.6,1), box-shadow 0.3s;
+    }
     background-color: #ffffff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     border-radius: 8px;
@@ -23,10 +189,36 @@ img {
     height: auto;
     display: block;
 }
+    .footer-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
+        /* Hiệu ứng nổi nhẹ */
+        box-shadow: 0 2px 12px 0 rgba(40,52,80,0.08);
+    }
 a {
     color: #007bff;
     text-decoration: none;
 }
+    .footer-column {
+        flex: 1;
+        min-width: 200px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 12px;
+        padding: 18px 16px 12px 16px;
+        margin: 0 8px;
+        box-shadow: 0 2px 8px 0 rgba(40,52,80,0.04);
+        transition: background 0.25s, box-shadow 0.22s, transform 0.18s;
+    }
+    .footer-column:hover {
+        background: rgba(255,255,255,0.10);
+        box-shadow: 0 4px 18px 0 rgba(40,52,80,0.10);
+        transform: translateY(-2px) scale(1.03);
+    }
 a:hover {
     text-decoration: underline;
 }
@@ -36,6 +228,20 @@ hr {
     background-color: #eee;
     margin: 20px 0;
 }
+    .footer-column ul li a {
+        color: #ccc;
+        text-decoration: none;
+        border-radius: 6px;
+        padding: 4px 10px;
+        display: inline-block;
+        transition: color 0.2s, background 0.22s, transform 0.18s;
+    }
+    .footer-column ul li a:hover, .footer-column ul li a:focus {
+        color: #28a745;
+        background: rgba(255,255,255,0.13);
+        text-decoration: none;
+        transform: scale(1.08);
+    }
 
 /* 2. Class cho Nút bấm (Button) */
 .btn {
@@ -44,6 +250,16 @@ hr {
     font-size: 15px;
     font-weight: 500;
     border: none;
+    .footer-bottom {
+        text-align: center;
+        padding-top: 20px;
+        margin-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.10);
+        font-size: 0.95em;
+        color: #aaa;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
     border-radius: 5px;
     cursor: pointer;
     text-decoration: none;
@@ -176,13 +392,20 @@ background-color: #f9f9f9;}
 }
 
 /* --- NAV BAR --- */
+
 nav {
-    background-color: #333;
-    position: sticky; 
-    top: 0;       
-    width: 100%;      
-    z-index: 1000;    
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+    /* Glassmorphism + Blur + Gradient */
+    background: rgba(40, 52, 80, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+    border-radius: 0 0 18px 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: background 0.4s cubic-bezier(.4,2,.6,1), box-shadow 0.3s;
 }
 
 .navbar-container {
@@ -204,27 +427,52 @@ nav ul {
 nav ul li {
     position: relative; 
 }
+
 nav ul li a {
     display: block;
-    padding: 15px 20px;
-    color: white;
+    padding: 15px 22px;
+    color: #fff;
     text-decoration: none;
+    border-radius: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    position: relative;
+    transition: background 0.25s, color 0.18s, box-shadow 0.22s, transform 0.18s;
+    overflow: hidden;
 }
-nav ul li a:hover {
-    background-color: #555;
+nav ul li a:hover, nav ul li a:focus {
+    background: rgba(255,255,255,0.13);
+    color: #EE0000;
+    box-shadow: 0 2px 12px 0 rgba(40,52,80,0.10);
+    transform: translateY(-2px) scale(1.06);
+}
+
+/* Hiệu ứng active cho menu */
+nav ul li a.active, nav ul li.active > a {
+    background: rgba(255,255,255,0.22);
+    color: #28a745;
+    font-weight: 700;
+    box-shadow: 0 4px 18px 0 rgba(40, 167, 69, 0.13);
+    border-bottom: 2.5px solid #28a745;
+    transform: scale(1.08);
 }
 
 nav ul li .dropdown-menu {
     display: none;
     position: absolute;
-    top: 100%; 
+    top: 100%;
     left: 0;
-    background-color: #f9f9f9;
-    min-width: 200px; 
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    min-width: 200px;
+    box-shadow: 0px 8px 24px 0px rgba(40,52,80,0.13);
     z-index: 100;
-    padding: 0; 
-    margin: 0; 
+    padding: 0;
+    margin: 0;
+    border-radius: 0 0 14px 14px;
+    border: 1px solid rgba(40,52,80,0.08);
+    transition: background 0.3s;
 }
 
 nav ul li:hover .dropdown-menu {
@@ -236,11 +484,19 @@ nav ul li .dropdown-menu li {
     width: 100%;
 }
 nav ul li .dropdown-menu li a {
-    color: black;
-    padding: 12px 16px;
+    color: #222;
+    padding: 12px 18px;
+    border-radius: 7px;
+    transition: background 0.18s, color 0.18s;
 }
-nav ul li .dropdown-menu li a:hover {
-    background-color: #ddd;
+nav ul li .dropdown-menu li a:hover, nav ul li .dropdown-menu li a:focus {
+    background: rgba(40,167,69,0.09);
+    color: #28a745;
+}
+nav ul li .dropdown-menu li a.active {
+    background: rgba(40,167,69,0.18);
+    color: #28a745;
+    font-weight: 600;
 }
 
 /* --- FOOTER --- */
@@ -475,4 +731,30 @@ nav ul li .dropdown-menu li a:hover {
 }
 .btn-cta:hover {
     background-color: #1e7e34;
+}
+
+/* Sửa chiều rộng thanh tìm kiếm trên nav */
+nav input[type="text"],
+nav #navbar-search-input {
+    width: 220px;      /* Đổi giá trị này theo ý bạn */
+    max-width: 100%;
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    transition: width 0.3s;
+}
+nav input[type="text"]:focus,
+nav #navbar-search-input:focus {
+    width: 270px;      /* Khi focus có thể rộng hơn */
+    border-color: #28a745;
+    outline: none;
+}
+
+nav ul {
+    gap: 8px; /* hoặc 10px, tạo khoảng cách giữa các mục */
+}
+
+nav ul li a {
+    padding: 12px 18px; /* giảm padding cho gọn lại */
 }
