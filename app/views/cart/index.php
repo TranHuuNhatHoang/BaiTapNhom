@@ -2,7 +2,7 @@
 
 <?php if (empty($cart_items)): ?>
     <p>Giỏ hàng của bạn đang rỗng.</p>
-    <a href="<?php echo BASE_URL; ?>" class="btn btn-primary">Tiếp tục mua sắm</a>
+   <a href="<?php echo BASE_URL; ?>index.php?controller=product&action=index" class="btn btn-primary">Tiếp tục mua sắm</a>
 <?php else: ?>
 
     <table class="table">
