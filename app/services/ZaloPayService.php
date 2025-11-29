@@ -15,7 +15,8 @@ class ZaloPayService {
      * @return array|null Trả về mảng chứa order_url (link thanh toán) nếu thành công
      */
     public function createPayment($order) {
-        $embed_data = json_encode(['redirecturl' => BASE_URL . 'index.php?controller=checkout&action=success&order_id=' . $order['order_id']]); // Sau khi thanh toán xong quay về đâu
+        // SỬA LỖI: Chuyển về trang Kết quả để kiểm tra trạng thái trước
+        $embed_data = json_encode(['redirecturl' => BASE_URL . 'index.php?controller=checkout&action=paymentResult&order_id=' . $order['order_id']]);
         $items = json_encode([]); // (Có thể gửi chi tiết items nếu muốn)
         
         // Mã đơn hàng của ZaloPay phải là duy nhất và theo format: yymmdd_appid_orderid

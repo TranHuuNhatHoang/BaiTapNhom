@@ -4,7 +4,7 @@ require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/Order.php';
 // Tải file functions (để dùng set_flash_message)
 require_once ROOT_PATH . '/config/functions.php';
-
+require_once ROOT_PATH . '/app/models/Address.php';
 class AccountController {
 
     // Bắt buộc đăng nhập cho tất cả các action trong controller này
@@ -20,10 +20,32 @@ class AccountController {
     /**
      * Action: Hiển thị trang Thông tin tài khoản
      */
+    /**
+     * CẬP NHẬT: Hiển thị trang Tài khoản (Có chuẩn bị dữ liệu Dropdown)
+     */
     public function index() {
         global $conn;
         $userModel = new User($conn);
         $user = $userModel->getUserById($_SESSION['user_id']); 
+
+        // --- LOGIC ĐỊA CHỈ MỚI ---
+        $addressModel = new Address($conn);
+        
+        // 1. Luôn lấy danh sách Tỉnh/Thành để hiển thị dropdown đầu tiên
+        $provinces = $addressModel->getProvinces();
+        
+        // 2. Nếu user đã có Tỉnh (trong CSDL), lấy danh sách Quận của Tỉnh đó
+        $districts = [];
+        if (!empty($user['province_id'])) {
+            $districts = $addressModel->getDistrictsByProvince($user['province_id']);
+        }
+        
+        // 3. Nếu user đã có Quận (trong CSDL), lấy danh sách Phường của Quận đó
+        $wards = [];
+        if (!empty($user['district_id'])) {
+            $wards = $addressModel->getWardsByDistrict($user['district_id']);
+        }
+        // --- KẾT THÚC LOGIC MỚI ---
 
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/account/index.php';
@@ -46,6 +68,9 @@ class AccountController {
     /**
      * Action: Xử lý Cập nhật thông tin
      */
+    /**
+     * CẬP NHẬT: Xử lý Cập nhật thông tin (Lưu cả ID địa chỉ)
+     */
     public function updateProfile() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             global $conn;
@@ -54,20 +79,21 @@ class AccountController {
             $user_id = $_SESSION['user_id'];
             $full_name = $_POST['full_name'];
             $phone = $_POST['phone'];
-            $address = $_POST['address'];
-            $province = $_POST['province'];
+            $address = $_POST['address']; // Đây là Số nhà/Tên đường
             
-            if ($userModel->updateProfile($user_id, $full_name, $phone, $address, $province)) {
-                // Cập nhật lại tên trong Session
+            // Lấy 3 ID Địa chỉ từ Form (nếu không chọn thì là null)
+            $province_id = !empty($_POST['province_id']) ? (int)$_POST['province_id'] : null;
+            $district_id = !empty($_POST['district_id']) ? (int)$_POST['district_id'] : null;
+            $ward_code   = !empty($_POST['ward_code']) ? $_POST['ward_code'] : null;
+            
+            // Gọi hàm updateProfile (phiên bản mới trong Model)
+            if ($userModel->updateProfile($user_id, $full_name, $phone, $address, $province_id, $district_id, $ward_code)) {
                 $_SESSION['user_full_name'] = $full_name;
-                
-                // Đặt thông báo thành công
                 set_flash_message("Cập nhật thông tin thành công!", 'success');
                 header("Location: " . BASE_URL . "index.php?controller=account&action=index");
                 exit;
             } else {
-                // die("Lỗi cập nhật thông tin."); // CŨ
-                set_flash_message("Lỗi cập nhật thông tin.", 'error'); // MỚI
+                set_flash_message("Lỗi cập nhật thông tin.", 'error');
                 header("Location: " . BASE_URL . "index.php?controller=account&action=index");
                 exit;
             }

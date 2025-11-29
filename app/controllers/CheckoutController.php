@@ -14,31 +14,31 @@ class CheckoutController {
      * Action: Hiển thị trang Checkout
      * CẬP NHẬT: Thêm logic Flash Message
      */
-    public function index() {
+   public function index() {
         global $conn;
         
-        // --- Code bảo vệ (Cập nhật với Flash Message) ---
+        // --- Code bảo vệ ---
         if (!isset($_SESSION['user_id'])) {
-            set_flash_message("Bạn phải đăng nhập để thanh toán.", 'error'); // MỚI
+            set_flash_message("Bạn phải đăng nhập để thanh toán.", 'error');
             header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
             exit;
         }
         $cart = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
         if (empty($cart)) {
-            set_flash_message("Giỏ hàng của bạn rỗng. Vui lòng thêm sản phẩm.", 'info'); // MỚI
+            set_flash_message("Giỏ hàng của bạn rỗng.", 'info'); 
             header("Location: " . BASE_URL . "index.php?controller=cart&action=index");
             exit;
         }
         // --- Hết code bảo vệ ---
 
-        // Lấy thông tin User (đã có)
+        // 1. Lấy thông tin User
         $userModel = new User($conn);
         $user = $userModel->getUserById($_SESSION['user_id']);
         
-        // Lấy Tóm tắt Giỏ hàng (đã có)
+        // 2. Lấy Tóm tắt Giỏ hàng
         $productModel = new Product($conn);
         $cart_items = [];
-        $total_price = 0; // Tổng tiền HÀNG (chưa giảm)
+        $total_price = 0; 
         
         foreach ($cart as $product_id => $quantity) {
             $product = $productModel->getProductById($product_id);
@@ -49,7 +49,7 @@ class CheckoutController {
             }
         }
         
-        // --- Lấy thông tin coupon (đã có) ---
+        // 3. Logic Coupon
         $coupon_code = $_SESSION['cart_coupon']['code'] ?? null;
         $discount_amount = $_SESSION['cart_coupon']['discount'] ?? 0;
         if ($discount_amount > $total_price) {
@@ -57,7 +57,28 @@ class CheckoutController {
         }
         $final_price = $total_price - $discount_amount;
         
-        // Tải View
+        // 4. LOGIC ĐỊA CHỈ MỚI (Để tự động điền Dropdown)
+        if (!class_exists('Address')) {
+            require_once ROOT_PATH . '/app/models/Address.php';
+        }
+        $addressModel = new Address($conn);
+        
+        // Luôn lấy Tỉnh/Thành
+        $provinces = $addressModel->getProvinces();
+        
+        // Nếu user đã lưu Tỉnh -> Lấy danh sách Quận của Tỉnh đó
+        $districts = [];
+        if (!empty($user['province_id'])) {
+            $districts = $addressModel->getDistrictsByProvince($user['province_id']);
+        }
+        
+        // Nếu user đã lưu Quận -> Lấy danh sách Phường của Quận đó
+        $wards = [];
+        if (!empty($user['district_id'])) {
+            $wards = $addressModel->getWardsByDistrict($user['district_id']);
+        }
+
+        // 5. Tải View (Truyền thêm $provinces, $districts, $wards)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/checkout/index.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
@@ -219,6 +240,47 @@ class CheckoutController {
         require_once ROOT_PATH . '/app/views/checkout/success.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }   
+
+    /**
+     * HÀM MỚI (GĐ 24 - Fix lỗi): Trang Kết quả Thanh toán ZaloPay
+     * Kiểm tra xem đơn hàng đã thực sự 'paid' chưa
+     */
+    public function paymentResult() {
+        // 1. Kiểm tra đăng nhập
+        if (!isset($_SESSION['user_id'])) {
+            header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+            exit;
+        }
+
+        $order_id = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
+        
+        global $conn;
+        $orderModel = new Order($conn);
+        
+        // 2. Lấy thông tin đơn hàng mới nhất từ CSDL
+        // (Lúc này, nếu Callback đã chạy xong thì status sẽ là 'paid')
+        $order = $orderModel->getOrderByIdAndUserId($order_id, $_SESSION['user_id']);
+        
+        if (!$order) {
+            set_flash_message("Không tìm thấy đơn hàng.", 'error');
+            header("Location: " . BASE_URL . "index.php?controller=account&action=history");
+            exit;
+        }
+
+        // 3. Kiểm tra trạng thái
+        if ($order['order_status'] == 'paid') {
+            // A. Nếu đã thanh toán thành công -> Chuyển sang trang Success chuẩn
+            set_flash_message("Thanh toán ZaloPay thành công!", 'success');
+            header("Location: " . BASE_URL . "index.php?controller=checkout&action=success&order_id=" . $order_id);
+            exit;
+        } else {
+            // B. Nếu vẫn là 'pending' (Do người dùng hủy, hoặc Callback chưa chạy tới)
+            // Hiển thị trang thông báo kết quả (Tạo ở bước 3)
+            require_once ROOT_PATH . '/app/views/layouts/header.php';
+            require_once ROOT_PATH . '/app/views/checkout/payment_result.php'; // Sẽ tạo file này
+            require_once ROOT_PATH . '/app/views/layouts/footer.php';
+        }
+    }
 
 }
 ?>
