@@ -52,32 +52,61 @@ $provinces = $addressModel->getProvinces(); // Lấy Tỉnh/Thành từ CSDL
             ============================================================
             -->
             
-            <!-- 1. Dropdown Tỉnh/Thành phố -->
+            <!-- 
+            ============================================================
+             CẬP NHẬT: Dropdown có Pre-fill (Tự chọn giá trị cũ)
+            ============================================================
+            -->
+            
+            <!-- 1. Tỉnh/Thành phố -->
             <div class="form-group">
                 <label for="province">Tỉnh/Thành phố:</label>
                 <select id="province" name="province_id" class="form-control" required>
                     <option value="">-- Chọn Tỉnh/Thành --</option>
                     <?php foreach ($provinces as $province): ?>
-                        <option value="<?php echo $province['province_id']; ?>">
+                        <option value="<?php echo $province['province_id']; ?>"
+                            <?php echo ($user['province_id'] == $province['province_id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($province['province_name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             
-            <!-- 2. Dropdown Quận/Huyện (Sẽ được JS nạp vào) -->
+            <!-- 2. Quận/Huyện -->
             <div class="form-group">
                 <label for="district">Quận/Huyện:</label>
                 <select id="district" name="district_id" class="form-control" required>
-                    <option value="">-- Vui lòng chọn Tỉnh/Thành trước --</option>
+                    <option value="">-- Chọn Quận/Huyện --</option>
+                    <!-- Nếu Controller đã gửi danh sách quận (do user có sẵn tỉnh), hiển thị ra -->
+                    <?php if (!empty($districts)): ?>
+                        <?php foreach ($districts as $district): ?>
+                            <option value="<?php echo $district['district_id']; ?>"
+                                <?php echo ($user['district_id'] == $district['district_id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($district['district_name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <option value="">-- Vui lòng chọn Tỉnh/Thành trước --</option>
+                    <?php endif; ?>
                 </select>
             </div>
             
-            <!-- 3. Dropdown Phường/Xã (Sẽ được JS nạp vào) -->
+            <!-- 3. Phường/Xã -->
             <div class="form-group">
                 <label for="ward">Phường/Xã:</label>
                 <select id="ward" name="ward_code" class="form-control" required>
-                    <option value="">-- Vui lòng chọn Quận/Huyện trước --</option>
+                    <option value="">-- Chọn Phường/Xã --</option>
+                    <!-- Nếu Controller đã gửi danh sách phường, hiển thị ra -->
+                    <?php if (!empty($wards)): ?>
+                        <?php foreach ($wards as $ward): ?>
+                            <option value="<?php echo $ward['ward_code']; ?>"
+                                <?php echo ($user['ward_code'] == $ward['ward_code']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($ward['ward_name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                         <option value="">-- Vui lòng chọn Quận/Huyện trước --</option>
+                    <?php endif; ?>
                 </select>
             </div>
             
@@ -106,7 +135,7 @@ $provinces = $addressModel->getProvinces(); // Lấy Tỉnh/Thành từ CSDL
                 <div style="margin-top: 10px;">
                     <input type="radio" id="zalopay" name="payment_method" value="zalopay">
                     <label for="zalopay">
-                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png" height="30" style="vertical-align: middle;">
+                        <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png" style="height: 30px !important; width: auto; vertical-align: middle;">
                         Thanh toán qua ZaloPay (QR Code)
                     </label>
                 </div>

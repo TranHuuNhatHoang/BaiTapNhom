@@ -68,27 +68,40 @@ class User {
     
         //HÀM MỚI: Lấy thông tin user bằng ID
      
+    /**
+     * 4. CẬP NHẬT: Lấy thông tin user (Thêm 3 cột địa chỉ mới vào SELECT)
+     */
     public function getUserById($id) {
-        $sql = "SELECT user_id, full_name, email, phone, address, province, role, avatar 
+        $sql = "SELECT user_id, full_name, email, phone, address, province, role, avatar, 
+                       province_id, district_id, ward_code 
                 FROM users WHERE user_id = ?";
-        
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        
-        return $result->fetch_assoc();
+        return $stmt->get_result()->fetch_assoc();
     }
     
      // HÀM MỚI CỦA BẠN: Cập nhật thông tin (không đổi mật khẩu)
      
     
-public function updateProfile($user_id, $full_name, $phone, $address, $province) {
-        $sql = "UPDATE users SET full_name = ?, phone = ?, address = ?, province = ?
+/**
+     * 5. CẬP NHẬT: Lưu thông tin user (Lưu thêm 3 cột ID địa chỉ)
+     */
+    public function updateProfile($user_id, $full_name, $phone, $address, $province_id, $district_id, $ward_code) {
+        // Lưu ý: $address bây giờ chỉ chứa "Số nhà, Tên đường"
+        
+        $sql = "UPDATE users SET 
+                    full_name = ?, 
+                    phone = ?, 
+                    address = ?, 
+                    province_id = ?, 
+                    district_id = ?, 
+                    ward_code = ?
                 WHERE user_id = ?";
         
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ssssi", $full_name, $phone, $address, $province, $user_id);
+        // "sssiisi" nghĩa là: string, string, string, int, int, string, int
+        $stmt->bind_param("sssiisi", $full_name, $phone, $address, $province_id, $district_id, $ward_code, $user_id);
         
         return $stmt->execute();
     }

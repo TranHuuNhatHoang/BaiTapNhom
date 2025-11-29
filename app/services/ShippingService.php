@@ -117,6 +117,27 @@ class ShippingService {
                            $order['district_name'] . ", " . 
                            $order['province_name'] . ", Vietnam";
 
+        // ============================================================
+        // SỬA LỖI: Xử lý Tiền thu hộ (COD) & Bảo hiểm
+        // ============================================================
+        
+        // 1. Tính tiền thu hộ (COD)
+        $cod_amount = 0;
+        if ($order['payment_method'] === 'cod') {
+            // Nếu khách chọn COD: Thu đủ số tiền đơn hàng
+            $cod_amount = (int)$order['total_amount'];
+        } else {
+            // Nếu là ZaloPay (hoặc khác): Đã trả tiền -> Không thu nữa
+            $cod_amount = 0;
+        }
+
+        // 2. Tính giá trị bảo hiểm (Giới hạn tối đa 10 triệu)
+        // (Vẫn bảo hiểm giá trị thật của hàng, dù COD = 0)
+        $insurance_value = (int)$order['total_amount'];
+        if ($insurance_value > 10000000) { 
+            $insurance_value = 10000000; 
+        }
+
         // 3. Đặt 'insurance_value' mặc định
         $insurance_value = 2000000; // 2 triệu VND
 
@@ -134,12 +155,14 @@ class ShippingService {
             "to_district_id" => (int)$order['shipping_district_id'], // (Mã Quận THẬT)
 
             // Thông tin gói hàng
-            "cod_amount" => (int)$order['total_amount'], 
+           // --- CẬP NHẬT 2 DÒNG NÀY ---
+            "cod_amount" => $cod_amount,      // Dùng biến đã tính ở trên
+            "insurance_value" => $insurance_value, // Dùng biến đã tính ở trên
+            // ---------------------------
             "weight" => 2000, 
             "length" => 30,
             "width" => 20,
             "height" => 10,
-            "insurance_value" => $insurance_value, 
             "service_type_id" => 2, 
             
             "items" => $items_array

@@ -82,7 +82,7 @@ function initializeAjaxCartForms() {
                         if (cartCountElement) {
                             cartCountElement.innerText = data.cart_count;
                         }
-                        // (Bạn có thể thêm 1 thông báo "Đã thêm!" popup ở đây)
+                        alert("Đã thêm vào giỏ hàng thành công!");
                     } else {
                         alert(data.message); 
                     }
@@ -155,9 +155,10 @@ function initializeAddressDropdowns() {
         });
     }
 }
+
 /**
  * =================================================================
- * HÀM MỚI (BƯỚC 3 - GĐ23): Khởi tạo Nút Kiểm tra Vận đơn
+ * HÀM MỚI (GĐ23): Khởi tạo Nút Kiểm tra Vận đơn
  * =================================================================
  */
 function initializeTrackingButton() {
@@ -165,55 +166,76 @@ function initializeTrackingButton() {
     const resultsDiv = document.getElementById('tracking-log-results');
 
     if (!btn || !resultsDiv) {
-        return; // Chỉ chạy nếu nút và div tồn tại (tức là ở trang Chi tiết Đơn hàng)
+        return; 
     }
 
     btn.addEventListener('click', function() {
-        const orderCode = this.dataset.orderCode; // Lấy mã từ data-order-code
+        const orderCode = this.dataset.orderCode; 
         resultsDiv.innerHTML = '<p>Đang tải lịch sử vận đơn...</p>';
-        btn.disabled = true; // Vô hiệu hóa nút
+        btn.disabled = true; 
 
-        // 1. Gọi AJAX đến TrackingController (đã tạo ở Bước 2)
         fetch(`index.php?controller=tracking&action=getOrderStatus&order_code=${orderCode}`)
             .then(response => response.json())
             .then(data => {
-                btn.disabled = false; // Bật lại nút
+                btn.disabled = false; 
 
                 if (data.success) {
-                    // 2. Thành công: Hiển thị lịch sử (log)
-                    let html = `<p><strong>Trạng thái hiện tại:</strong> ${data.status}</p>`;
+                    // --- BẢNG DỊCH TRẠNG THÁI SANG TIẾNG VIỆT ---
+                    const statusMap = {
+                        'ready_to_pick': 'Chờ lấy hàng',
+                        'picking': 'Shipper đang đến lấy',
+                        'cancel': 'Hủy đơn hàng',
+                        'picked': 'Đã lấy hàng',
+                        'storing': 'Đang lưu kho',
+                        'transporting': 'Đang luân chuyển',
+                        'sorting': 'Đang phân loại',
+                        'delivering': 'Đang giao hàng',
+                        'money_collect_picking': 'Đang thu tiền người gửi',
+                        'money_collect_delivering': 'Đang thu tiền người nhận',
+                        'delivered': 'Giao hàng thành công',
+                        'delivery_fail': 'Giao hàng thất bại',
+                        'waiting_to_return': 'Chờ trả hàng',
+                        'return': 'Đang trả hàng',
+                        'returned': 'Đã trả hàng',
+                        'exception': 'Ngoại lệ (Sự cố)',
+                        'damage': 'Hàng bị hư hỏng',
+                        'lost': 'Hàng bị mất'
+                    };
+
+                    // 1. Dịch trạng thái HIỆN TẠI (SỬA LỖI Ở ĐÂY)
+                    let currentStatusText = statusMap[data.status] || data.status;
+                    let html = `<p><strong>Trạng thái hiện tại:</strong> <span style="color:blue; font-weight:bold;">${currentStatusText}</span></p>`;
+                    
                     html += '<ul style="padding-left: 20px; font-size: 0.9em;">';
                     
-                    // (Tài liệu GHN nói 'log' là một mảng)
+                    // 2. Hiển thị lịch sử
                     if (data.log && data.log.length > 0) {
                         data.log.forEach(logEntry => {
-                            // Định dạng lại ngày (vd: "2020-05-29T14:40:46.934Z")
                             const date = new Date(logEntry.updated_date);
                             const formattedDate = date.toLocaleString('vi-VN', { 
-                                day: '2-digit', 
-                                month: '2-digit', 
-                                year: 'numeric', 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
+                                day: '2-digit', month: '2-digit', year: 'numeric', 
+                                hour: '2-digit', minute: '2-digit' 
                             });
                             
-                            // (Tùy vào API GHN, status có thể là text hoặc mã)
-                            let statusText = logEntry.status;
-                            // (Bạn có thể thêm 1 switch case ở đây để dịch status)
+                            // Dịch trạng thái trong log
+                            let logStatusText = statusMap[logEntry.status] || logEntry.status;
                             
-                            html += `<li>${formattedDate}: <strong>${statusText}</strong></li>`;
+                            let color = '#333';
+                            if (logEntry.status === 'delivered') color = 'green';
+                            if (logEntry.status === 'cancel' || logEntry.status === 'delivery_fail') color = 'red';
+                            
+                            html += `<li>${formattedDate}: <strong style="color: ${color}">${logStatusText}</strong></li>`;
                         });
                     }
                     html += '</ul>';
                     resultsDiv.innerHTML = html;
                     
                 } else {
-                    // 3. Thất bại (vd: 401, 403, 404)
                     resultsDiv.innerHTML = `<p style="color: red;">Lỗi: ${data.message}</p>`;
                 }
             })
             .catch(error => {
-                btn.disabled = false; // Bật lại nút
+                btn.disabled = false; 
                 console.error('Lỗi Tracking AJAX:', error);
                 resultsDiv.innerHTML = '<p style="color: red;">Lỗi kết nối. Vui lòng thử lại.</p>';
             });
@@ -223,12 +245,9 @@ function initializeTrackingButton() {
 /**
  * =================================================================
  * KHỞI CHẠY (Initialize)
- * (Chỉ dùng MỘT 'DOMContentLoaded' listener duy nhất)
  * =================================================================
  */
 document.addEventListener("DOMContentLoaded", function() {
-    
-    // Khởi chạy tất cả các tính năng
     initializeLiveSearch();
     initializeAjaxCartForms();
     initializeAddressDropdowns();

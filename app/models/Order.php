@@ -265,5 +265,19 @@ class Order {
         $stmt->bind_param("ssi", $provider, $tracking_code, $order_id);
         return $stmt->execute();
     }
+    /**
+     * HÀM MỚI: Cập nhật trạng thái thanh toán (ZaloPay)
+     */
+    public function updatePaymentStatus($order_id, $zalopay_trans_id, $status = 'paid') {
+        $sql = "UPDATE orders SET 
+                    zalopay_trans_id = ?, 
+                    order_status = ? 
+                WHERE order_id = ?";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ssi", $zalopay_trans_id, $status, $order_id);
+        
+        return $stmt->execute();
+    }
 }
 ?>
