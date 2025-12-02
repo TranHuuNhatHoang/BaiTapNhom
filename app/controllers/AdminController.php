@@ -9,6 +9,7 @@ require_once ROOT_PATH . '/app/models/ProductImage.php';
 require_once ROOT_PATH . '/app/models/Review.php';
 require_once ROOT_PATH . '/app/services/ShippingService.php';
 require_once ROOT_PATH . '/config/functions.php';
+require_once ROOT_PATH . '/app/models/Address.php'; 
 
 class AdminController {
 
@@ -658,19 +659,44 @@ class AdminController {
      * HÀM MỚI (để sửa lỗi): Hiển thị form Sửa User
      * URL: index.php?controller=admin&action=editUser&id=123
      */
+    /**
+     * CẬP NHẬT (Sửa lỗi Địa chỉ): Hiển thị form Sửa User (có Dropdown)
+     */
     public function editUser() {
         $user_id = (int)$_GET['id'];
         if ($user_id <= 0) die("ID không hợp lệ.");
         
         global $conn;
         $userModel = new User($conn);
-        $user = $userModel->getUserById($user_id); // Dùng hàm đã có
+        $user = $userModel->getUserById($user_id);
         
         if (!$user) die("Không tìm thấy user.");
+        
+        // --- LOGIC ĐỊA CHỈ MỚI (Giống AccountController) ---
+        if (!class_exists('Address')) {
+            require_once ROOT_PATH . '/app/models/Address.php';
+        }
+        $addressModel = new Address($conn);
+        
+        // 1. Luôn lấy danh sách Tỉnh/Thành
+        $provinces = $addressModel->getProvinces();
+        
+        // 2. Nếu user đã có Tỉnh, lấy danh sách Quận
+        $districts = [];
+        if (!empty($user['province_id'])) {
+            $districts = $addressModel->getDistrictsByProvince($user['province_id']);
+        }
+        
+        // 3. Nếu user đã có Quận, lấy danh sách Phường
+        $wards = [];
+        if (!empty($user['district_id'])) {
+            $wards = $addressModel->getWardsByDistrict($user['district_id']);
+        }
+        // --- KẾT THÚC LOGIC MỚI ---
 
-        // Tải layout và view
+        // Tải layout và view (Truyền thêm $provinces, $districts, $wards)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/admin/user_form.php'; // Tải form
+        require_once ROOT_PATH . '/app/views/admin/user_form.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
     
@@ -678,24 +704,37 @@ class AdminController {
      * HÀM MỚI (để sửa lỗi): Xử lý Cập nhật User
      * URL: (Form POST tới) index.php?controller=admin&action=updateUser
      */
+    /**
+     * CẬP NHẬT (Sửa lỗi Địa chỉ): Xử lý Cập nhật User (Lưu ID)
+     */
     public function updateUser() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user_id = (int)$_POST['user_id'];
             $full_name = $_POST['full_name'];
             $email = $_POST['email'];
             $phone = $_POST['phone'];
-            $address = $_POST['address'];
-            $province = $_POST['province'];
+            $address = $_POST['address']; // Số nhà/Tên đường
             $role = $_POST['role'];
-
-            // Ngăn admin tự đổi vai trò của mình (nếu dùng form này)
-            if ($user_id === $_SESSION['user_id']) {
-                 // (logic an toàn, có thể bỏ qua nếu `select` đã bị disabled)
-            }
+            
+            // Lấy 3 ID Địa chỉ từ Form
+            $province_id = !empty($_POST['province_id']) ? (int)$_POST['province_id'] : null;
+            $district_id = !empty($_POST['district_id']) ? (int)$_POST['district_id'] : null;
+            $ward_code   = !empty($_POST['ward_code']) ? $_POST['ward_code'] : null;
 
             global $conn;
             $userModel = new User($conn);
-            $userModel->adminUpdateUser($user_id, $full_name, $email, $phone, $address, $province, $role);
+            
+            // Gọi hàm updateProfile (vì hàm adminUpdateUser cũ chưa hỗ trợ ID địa chỉ)
+            // Hoặc tốt nhất là cập nhật hàm adminUpdateUser trong Model
+            // Ở đây ta dùng tạm updateProfile rồi cập nhật role riêng
+            
+            // 1. Cập nhật thông tin cá nhân & địa chỉ
+            $userModel->updateProfile($user_id, $full_name, $phone, $address, $province_id, $district_id, $ward_code);
+            
+            // 2. Cập nhật role (vì updateProfile không sửa role)
+            $userModel->updateUserRole($user_id, $role);
+            
+            // (Bạn cũng có thể viết 1 hàm adminUpdateUserV2 trong Model nhận đủ tham số)
             
             header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
             exit;
