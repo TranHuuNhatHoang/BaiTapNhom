@@ -3,7 +3,7 @@
 require_once ROOT_PATH . '/app/models/User.php';
 // 2. Tải file functions (để dùng set_flash_message)
 require_once ROOT_PATH . '/config/functions.php';
-
+require_once ROOT_PATH . '/app/services/GoogleLoginService.php';
 class AuthController {
 
     /**
@@ -222,6 +222,83 @@ class AuthController {
             } else {
                 // die("Lỗi: Token không hợp lệ hoặc đã hết hạn."); // CŨ
                 set_flash_message("Lỗi: Token không hợp lệ hoặc đã hết hạn.", 'error'); // MỚI
+                header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
+                exit;
+            }
+        }
+    }
+
+    /**
+     * Action: Chuyển hướng sang Google
+     */
+   public function loginGoogle() {
+    // Khởi tạo đối tượng GoogleLoginService
+    $googleService = new GoogleLoginService();
+
+    // Gọi hàm getAuthUrl thông qua đối tượng (dùng dấu ->)
+    $authUrl = $googleService->getAuthUrl();
+
+    header('Location: ' . $authUrl);
+    exit;
+}
+
+    /**
+     * Action: Xử lý khi Google gọi về (Callback)
+     */
+    public function googleCallback() {
+        if (isset($_GET['code'])) {
+            $googleService = new GoogleLoginService();
+            $googleUser = $googleService->getUserInfo($_GET['code']);
+
+            if ($googleUser && isset($googleUser['email'])) {
+                global $conn;
+                $userModel = new User($conn);
+
+                // 1. Kiểm tra xem email này đã có trong CSDL chưa
+                $existingUser = $userModel->findUserByEmail($googleUser['email']);
+
+                if ($existingUser) {
+                    // A. Đã có tài khoản -> Đăng nhập luôn
+                    $user = $existingUser;
+                    
+                    // (Tùy chọn: Cập nhật google_id vào đây nếu chưa có, nhưng không bắt buộc)
+
+                } else {
+                    // B. Chưa có tài khoản -> Tự động Đăng ký mới
+                    $full_name = $googleUser['name'];
+                    $email = $googleUser['email'];
+                    $google_id = $googleUser['id'];
+                    // (Không có password, tạo random hash để placeholder)
+                    $dummy_pass = password_hash(bin2hex(random_bytes(8)), PASSWORD_DEFAULT);
+                    
+                    // Gọi hàm SQL insert trực tiếp (hoặc sửa hàm createUser để hỗ trợ google_id)
+                    // Ở đây tôi dùng SQL trực tiếp cho nhanh gọn và không ảnh hưởng các hàm cũ:
+                    // Lưu ý: Không có cột 'is_verified' vì bạn đã xóa nó ở bước SQL
+                    $sql = "INSERT INTO users (full_name, email, google_id, role, password_hash) VALUES (?, ?, ?, 'user', ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ssss", $full_name, $email, $google_id, $dummy_pass);
+                    $stmt->execute();
+                    
+                    // Lấy lại user vừa tạo
+                    $user = $userModel->findUserByEmail($email);
+                }
+
+                // 2. Thiết lập Session Đăng nhập
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['user_full_name'] = $user['full_name'];
+                $_SESSION['user_role'] = $user['role'];
+                
+                // Lưu avatar từ Google (nếu muốn hiển thị ngay, tùy chọn)
+                if (isset($googleUser['picture'])) {
+                     $_SESSION['user_avatar_external'] = $googleUser['picture']; 
+                }
+
+                set_flash_message("Đăng nhập Google thành công!", 'success');
+                header("Location: " . BASE_URL);
+                exit;
+
+            } else {
+                set_flash_message("Lỗi xác thực Google. Vui lòng thử lại.", 'error');
                 header("Location: " . BASE_URL . "index.php?controller=auth&action=login");
                 exit;
             }

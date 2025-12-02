@@ -27,6 +27,15 @@
     <!-- Áp dụng class .btn .btn-primary -->
     <button type="submit" class="btn btn-primary">Đăng nhập</button>
 </form>
+<!-- THÊM NÚT GOOGLE -->
+<div style="text-align: center; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+    <p>Hoặc đăng nhập nhanh bằng:</p>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=auth&action=loginGoogle" 
+       class="btn" 
+       style="background-color: #db4437; color: white; display: inline-block; text-decoration: none; padding: 10px 20px; border-radius: 5px;">
+       <span style="font-weight: bold;">G</span> Đăng nhập bằng Google
+    </a>
+</div>
 
 <!-- Link Quên mật khẩu (GĐ 15) -->
 <p style="margin-top: 15px;">
