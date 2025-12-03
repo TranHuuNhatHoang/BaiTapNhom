@@ -1,30 +1,52 @@
 <?php 
 /*
- * File trang Tài khoản (ĐÃ CẬP NHẬT: Thêm Dropdown Địa chỉ)
+ * File trang Tài khoản (ĐÃ CẬP NHẬT: Thêm logic Xóa Avatar)
  */
 ?>
 
-<!-- (Phần Header, Avatar... giữ nguyên) -->
 <h1>Tài khoản của tôi</h1>
-<a href="<?php echo BASE_URL; ?>index.php?controller=account&action=history" class="btn btn-secondary">Xem Lịch sử Đơn hàng</a>
-<a href="<?php echo BASE_URL; ?>index.php?controller=account&action=changePassword" class="btn btn-danger" style="margin-left: 10px;">Đổi mật khẩu</a>
+<div class="account-actions">
+    <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=history" class="btn btn-secondary">Xem Lịch sử Đơn hàng</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=changePassword" class="btn btn-danger" style="margin-left: 10px;">Đổi mật khẩu</a>
+</div>
 <hr>
 
-<!-- Khu vực Avatar -->
 <div class="avatar-section form-group">
     <h3>Ảnh đại diện</h3>
     <?php 
-    $avatar_path = 'public/uploads/avatars/' . ($user['avatar'] ?? 'default.png');
-    if (!file_exists(ROOT_PATH . '/' . $avatar_path) || empty($user['avatar'])) {
-        $avatar_path = 'public/images/default_avatar.png'; 
+    // Tên file avatar hiện tại từ CSDL (thường là 'default.png' nếu chưa upload)
+    $avatar_filename = $user['avatar'] ?? 'default.png';
+    $default_avatar = 'default.png';
+    
+    // 1. Đường dẫn tới file avatar trong thư mục uploads
+    $uploaded_avatar_path = 'public/uploads/avatars/' . $avatar_filename;
+    
+    // 2. Kiểm tra file có tồn tại thật trong thư mục uploads không
+    if (file_exists(ROOT_PATH . '/' . $uploaded_avatar_path) && $avatar_filename !== $default_avatar) {
+        $display_path = BASE_URL . $uploaded_avatar_path;
+        $is_custom_avatar = true;
+    } else {
+        // Nếu không tồn tại hoặc là default, dùng ảnh mặc định trong thư mục images
+        $display_path = BASE_URL . 'public/images/default_avatar.png';
+        $is_custom_avatar = false;
     }
     ?>
-    <img src="<?php echo BASE_URL . $avatar_path; ?>" alt="Avatar" 
-         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; margin-bottom: 15px;">
+    <img src="<?php echo $display_path; ?>" alt="Avatar" 
+        style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #eee; margin-bottom: 15px;">
+        
     <form method="POST" action="<?php echo BASE_URL; ?>index.php?controller=account&action=updateAvatar" enctype="multipart/form-data">
         <label for="avatar_file">Thay ảnh mới:</label><br>
-        <input type="file" id="avatar_file" name="avatar_file" accept="image/*" required class="form-control" style="max-width: 300px; display: inline-block;">
-        <button type="submit" class="btn btn-secondary">Tải lên</button>
+        <input type="file" id="avatar_file" name="avatar_file" accept="image/jpeg, image/png, image/gif, image/webp" required class="form-control" style="max-width: 300px; display: inline-block;">
+        <button type="submit" class="btn btn-primary">Tải lên</button>
+        
+        <?php if ($is_custom_avatar): ?>
+            <a href="<?php echo BASE_URL; ?>index.php?controller=account&action=deleteAvatar" 
+               class="btn btn-danger" 
+               onclick="return confirm('Bạn có chắc chắn muốn xóa ảnh đại diện và đặt lại mặc định?');"
+               style="margin-left: 10px;">
+                Xóa ảnh đại diện
+            </a>
+        <?php endif; ?>
     </form>
 </div>
 <hr>
@@ -48,12 +70,6 @@
         <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone'] ?? ''); ?>" class="form-control">
     </div>
     
-    <!-- 
-    ============================================================
-     CẬP NHẬT: 3 DROPDOWN ĐỊA CHỈ (Có tự động chọn)
-     (Sử dụng id="province", "district", "ward" để main.js hoạt động)
-    ============================================================
-    -->
     <div class="form-group">
         <label for="province">Tỉnh/Thành phố:</label>
         <select id="province" name="province_id" class="form-control">
@@ -71,7 +87,6 @@
         <label for="district">Quận/Huyện:</label>
         <select id="district" name="district_id" class="form-control">
             <option value="">-- Chọn Quận/Huyện --</option>
-            <!-- Hiển thị danh sách nếu đã có data từ Controller (vì user đã chọn trước đó) -->
             <?php if (!empty($districts)): ?>
                 <?php foreach ($districts as $district): ?>
                     <option value="<?php echo $district['district_id']; ?>"
@@ -102,7 +117,5 @@
         <label for="address">Địa chỉ cụ thể (Số nhà, Tên đường):</label>
         <input type="text" id="address" name="address" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>" class="form-control" placeholder="VD: 123 Nguyễn Trãi">
     </div>
-    <!-- KẾT THÚC CẬP NHẬT -->
-    
     <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Cập nhật thông tin</button>
 </form>
