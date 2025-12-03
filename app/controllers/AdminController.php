@@ -1,5 +1,5 @@
 <?php
-// 1. Tải cả 3 file Model
+// 1. Tải các file Model
 require_once ROOT_PATH . '/app/models/Product.php';
 require_once ROOT_PATH . '/app/models/Brand.php';
 require_once ROOT_PATH . '/app/models/Category.php';
@@ -7,9 +7,10 @@ require_once ROOT_PATH . '/app/models/Order.php';
 require_once ROOT_PATH . '/app/models/User.php';
 require_once ROOT_PATH . '/app/models/ProductImage.php'; 
 require_once ROOT_PATH . '/app/models/Review.php';
+require_once ROOT_PATH . '/app/models/Coupon.php'; 
 require_once ROOT_PATH . '/app/services/ShippingService.php';
 require_once ROOT_PATH . '/config/functions.php';
-require_once ROOT_PATH . '/app/models/Address.php'; 
+require_once ROOT_PATH . '/app/models/Contact.php'; // <== ĐÃ THÊM
 
 class AdminController {
 
@@ -17,17 +18,23 @@ class AdminController {
      * HÀM HELPER: Xử lý upload file
      */
     private function handleUpload($file_input_name, $upload_dir) {
-        // (Code hàm handleUpload... giữ nguyên)
         if (isset($_FILES[$file_input_name]) && $_FILES[$file_input_name]['error'] === UPLOAD_ERR_OK) {
             $file_tmp_path = $_FILES[$file_input_name]['tmp_name'];
             $file_name = basename($_FILES[$file_input_name]['name']);
             $file_type = $_FILES[$file_input_name]['type'];
-            $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif'];
+            $allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']; // Mở rộng thêm WEBP
             if (!in_array($file_type, $allowed_mime_types)) {
                 return null; 
             }
             $new_file_name = uniqid() . '-' . $file_name;
             $dest_path = ROOT_PATH . $upload_dir . $new_file_name;
+            
+            // Kiểm tra và tạo thư mục nếu chưa có (để tránh lỗi di chuyển file)
+            $absolute_upload_dir = ROOT_PATH . $upload_dir;
+            if (!is_dir($absolute_upload_dir)) {
+                 @mkdir($absolute_upload_dir, 0777, true);
+            }
+
             if (move_uploaded_file($file_tmp_path, $dest_path)) {
                 return $new_file_name; 
             }
@@ -49,7 +56,7 @@ class AdminController {
     }
  
     /**
-     * HÀM INDEX (Dashboard - Đã sửa đúng)
+     * HÀM INDEX (Dashboard)
      */
     public function index() {
         global $conn;
@@ -59,6 +66,10 @@ class AdminController {
         
         $userModel = new User($conn);
         $new_users = $userModel->countNewUsers();
+        
+        // LẤY SỐ LƯỢNG LIÊN HỆ MỚI
+        $contactModel = new Contact($conn); 
+        $new_contacts = $contactModel->countNewContacts(); 
         
         $chart_data_raw = $orderModel->getRevenueLast7Days();
         
@@ -80,14 +91,17 @@ class AdminController {
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
  
+    // ------------------------------------------------------------
+    // QUẢN LÝ SẢN PHẨM
+    // ------------------------------------------------------------
+    
     /**
-     * HÀM listProducts (Sửa lỗi: Thêm Header/Footer)
+     * HÀM listProducts
      */
     public function listProducts() {
         global $conn; 
         $productModel = new Product($conn);
 
-        // (Code phân trang của bạn...)
         $products_per_page = 6; 
         $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         if ($current_page < 1) $current_page = 1;
@@ -97,14 +111,13 @@ class AdminController {
         $offset = ($current_page - 1) * $products_per_page;
         $products = $productModel->getAllProducts($products_per_page, $offset);
 
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/product_list.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
-     * HÀM create (Sửa lỗi: Thêm Header/Footer)
+     * HÀM create
      */
     public function create() {
         global $conn;
@@ -115,14 +128,13 @@ class AdminController {
         $categoryModel = new Category($conn);
         $categories = $categoryModel->getAllCategories();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/product_form.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
-     * HÀM store (Không đổi - Xử lý)
+     * HÀM store
      */
     public function store() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -150,7 +162,7 @@ class AdminController {
     }
  
     /**
-     * HÀM edit (Sửa lỗi: Thêm Header/Footer)
+     * HÀM edit
      */
     public function edit() {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -166,38 +178,28 @@ class AdminController {
         $categoryModel = new Category($conn);
         $categories = $categoryModel->getAllCategories();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/product_form.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
-     * HÀM update (Không đổi - Xử lý)
-     */
-    /**
-     * HÀM update (CẬP NHẬT: Sửa lỗi chuyển hướng Phân trang)
+     * HÀM update
      */
     public function update() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['product_id'];
             if ($id <= 0) die("ID không hợp lệ.");
             
-            // ============================================================
-            // BƯỚC 2.1: Lấy URL quay lại từ Form
-            // ============================================================
             $return_url = $_POST['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
-            // (Đảm bảo an toàn)
             if (strpos($return_url, 'controller=admin') === false) {
                  $return_url = BASE_URL . 'index.php?controller=admin&action=listProducts';
             }
-            // ============================================================
 
-            $new_image_name = $_POST['current_main_image']; // Giữ ảnh cũ
+            $new_image_name = $_POST['current_main_image']; 
             
             if (isset($_FILES['main_image']) && $_FILES['main_image']['error'] === UPLOAD_ERR_OK) {
                 $new_image_name = $this->handleUpload('main_image', '/public/uploads/');
-                // (Sau này nên xóa ảnh cũ)
             }
 
             $name = $_POST['product_name'];
@@ -213,9 +215,6 @@ class AdminController {
             
             if ($productModel->updateProduct($id, $name, $price, $brand_id, $category_id, $quantity, $description, $main_image)) {
                 
-                // ============================================================
-                // BƯỚC 2.2: Chuyển hướng về URL đã lưu (thay vì trang 1)
-                // ============================================================
                 header("Location: " . $return_url);
                 exit;
                 
@@ -226,7 +225,7 @@ class AdminController {
     }
  
     /**
-     * HÀM delete (Không đổi - Xử lý)
+     * HÀM delete
      */
     public function delete() {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -243,47 +242,113 @@ class AdminController {
         }
     }
     
+    // ------------------------------------------------------------
+    // QUẢN LÝ ĐƠN HÀNG
+    // ------------------------------------------------------------
+
     /**
-     * HÀM listOrders (Sửa lỗi: Thêm Header/Footer)
+     * HÀM listOrders
      */
     public function listOrders() {
         global $conn;
         $orderModel = new Order($conn);
         $orders = $orderModel->getAllOrders();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/order_list.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
     
     /**
-     * HÀM listBrands (Sửa lỗi: Thêm Header/Footer)
+     * HÀM updateOrderStatus
+     */
+    public function updateOrderStatus() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $order_id = (int)$_POST['order_id'];
+            $new_status = $_POST['new_status'];
+            
+            global $conn;
+            $orderModel = new Order($conn);
+
+            // LOGIC: Tự động gọi API khi chuyển sang "shipped"
+            if ($new_status == 'shipped') {
+                
+                $order = $orderModel->getOrderByIdForAdmin($order_id);
+                $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
+                
+                if ($order && !empty($order_details)) {
+                    
+                    $shippingService = new ShippingService();
+                    
+                    $tracking_code = $shippingService->createShipment($order, $order_details);
+                    
+                    if ($tracking_code) {
+                        $provider = 'GHN'; 
+                        $orderModel->updateTrackingInfo($order_id, $provider, $tracking_code);
+                        
+                        set_flash_message("Tạo vận đơn API thành công! Mã: $tracking_code", 'success');
+                        
+                    } else {
+                        set_flash_message("LỖI API: Không thể tạo đơn vận chuyển. Vui lòng kiểm tra lại (địa chỉ, SĐT) hoặc thử lại sau.", 'error');
+                        header("Location: " . BASE_URL . "index.php?controller=admin&action=orderDetail&id=" . $order_id);
+                        exit;
+                    }
+                }
+            }
+
+            // Cập nhật Status
+            $orderModel->updateOrderStatus($order_id, $new_status);
+            
+            if (!isset($_SESSION['flash_message'])) {
+                 set_flash_message("Cập nhật trạng thái đơn hàng thành công.", 'success');
+            }
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
+            exit;
+        }
+    }
+
+    /**
+     * HÀM orderDetail
+     */
+    public function orderDetail() {
+        $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($order_id <= 0) die("ID đơn hàng không hợp lệ.");
+        global $conn;
+        
+        $orderModel = new Order($conn);
+        $order = $orderModel->getOrderByIdForAdmin($order_id); 
+        if (!$order) die("Không tìm thấy đơn hàng.");
+        
+        $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
+        
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/admin/order_detail.php';
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+    // ------------------------------------------------------------
+    // QUẢN LÝ THƯƠNG HIỆU & DANH MỤC
+    // ------------------------------------------------------------
+
+    /**
+     * HÀM listBrands
      */
     public function listBrands() {
         global $conn;
         $brandModel = new Brand($conn);
         $brands = $brandModel->getAllBrands();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/brand_list.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM createBrand (Sửa lỗi: Thêm Header/Footer)
-     */
     public function createBrand() {
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/brand_form.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM storeBrand (Không đổi - Xử lý)
-     */
     public function storeBrand() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_logo_name = $this->handleUpload('logo', '/public/uploads/');
@@ -295,24 +360,17 @@ class AdminController {
         }
     }
 
-    /**
-     * HÀM editBrand (Sửa lỗi: Thêm Header/Footer)
-     */
     public function editBrand() {
         $id = (int)$_GET['id'];
         global $conn;
         $brandModel = new Brand($conn);
         $brand = $brandModel->getBrandById($id);
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/brand_form.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM updateBrand (Không đổi - Xử lý)
-     */
     public function updateBrand() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['brand_id'];
@@ -328,9 +386,6 @@ class AdminController {
         }
     }
     
-    /**
-     * HÀM deleteBrand (Không đổi - Xử lý)
-     */
     public function deleteBrand() {
         $id = (int)$_GET['id'];
         global $conn;
@@ -341,32 +396,24 @@ class AdminController {
     }
     
     /**
-     * HÀM listCategories (Sửa lỗi: Thêm Header/Footer)
+     * HÀM listCategories
      */
     public function listCategories() {
         global $conn;
         $categoryModel = new Category($conn);
         $categories = $categoryModel->getAllCategories();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/category_list.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM createCategory (Sửa lỗi: Thêm Header/Footer)
-     */
     public function createCategory() {
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/category_form.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM storeCategory (Không đổi - Xử lý)
-     */
     public function storeCategory() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             global $conn;
@@ -377,24 +424,17 @@ class AdminController {
         }
     }
 
-    /**
-     * HÀM editCategory (Sửa lỗi: Thêm Header/Footer)
-     */
     public function editCategory() {
         $id = (int)$_GET['id'];
         global $conn;
         $categoryModel = new Category($conn);
         $category = $categoryModel->getCategoryById($id);
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/category_form.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
-    /**
-     * HÀM updateCategory (Không đổi - Xử lý)
-     */
     public function updateCategory() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['category_id'];
@@ -406,9 +446,6 @@ class AdminController {
         }
     }
     
-    /**
-     * HÀM deleteCategory (Không đổi - Xử lý)
-     */
     public function deleteCategory() {
         $id = (int)$_GET['id'];
         global $conn;
@@ -418,101 +455,25 @@ class AdminController {
         exit;
     }
     
-    /**
-     * HÀM updateOrderStatus (Không đổi - Xử lý)
-     */
-    /**
-     * CẬP NHẬT (BƯỚC 5): Tự động gọi API khi chuyển sang "shipped"
-     */
-    public function updateOrderStatus() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $order_id = (int)$_POST['order_id'];
-            $new_status = $_POST['new_status'];
-            
-            global $conn;
-            $orderModel = new Order($conn);
-
-            // --- LOGIC MỚI: Tự động gọi API ---
-            
-            // 1. Kiểm tra xem Admin có phải đang muốn "Giao hàng" không
-            if ($new_status == 'shipped') {
-                
-                // 2. Lấy thông tin đầy đủ của đơn hàng
-                $order = $orderModel->getOrderByIdForAdmin($order_id);
-                $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
-                
-                if ($order && !empty($order_details)) {
-                    
-                    // 3. Gọi Service (File bạn tạo ở Bước 3)
-                    $shippingService = new ShippingService();
-                    
-                    // (Lưu ý: Bạn phải dán API Key và Shop ID thật vào ShippingService.php)
-                    $tracking_code = $shippingService->createShipment($order, $order_details);
-                    
-                    if ($tracking_code) {
-                        // 4. THÀNH CÔNG: Cập nhật CSDL
-                        $provider = 'GHN'; // (Vì chúng ta dùng API GHN)
-                        $orderModel->updateTrackingInfo($order_id, $provider, $tracking_code);
-                        
-                        set_flash_message("Tạo vận đơn API thành công! Mã: $tracking_code", 'success');
-                        
-                    } else {
-                        // 5. THẤT BẠI: Báo lỗi, KHÔNG đổi status
-                        set_flash_message("LỖI API: Không thể tạo đơn vận chuyển. Vui lòng kiểm tra lại (địa chỉ, SĐT) hoặc thử lại sau.", 'error');
-                        header("Location: " . BASE_URL . "index.php?controller=admin&action=orderDetail&id=" . $order_id);
-                        exit;
-                    }
-                }
-            }
-            // --- KẾT THÚC LOGIC MỚI ---
-
-            // 6. Cập nhật Status (Bất kể là status gì)
-            $orderModel->updateOrderStatus($order_id, $new_status);
-            
-            if (!isset($_SESSION['flash_message'])) {
-                 set_flash_message("Cập nhật trạng thái đơn hàng thành công.", 'success');
-            }
-            header("Location: " . BASE_URL . "index.php?controller=admin&action=listOrders");
-            exit;
-        }
-    }
+    // ------------------------------------------------------------
+    // QUẢN LÝ NGƯỜI DÙNG & ĐÁNH GIÁ
+    // ------------------------------------------------------------
 
     /**
-     * HÀM orderDetail (Sửa lỗi: Thêm Header/Footer)
-     */
-    public function orderDetail() {
-        $order_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($order_id <= 0) die("ID đơn hàng không hợp lệ.");
-        global $conn;
-        
-        $orderModel = new Order($conn);
-        $order = $orderModel->getOrderByIdForAdmin($order_id); 
-        if (!$order) die("Không tìm thấy đơn hàng.");
-        
-        $order_details = $orderModel->getOrderDetailsByOrderId($order_id);
-        
-        // SỬA LỖI: Thêm Header/Footer
-        require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/admin/order_detail.php';
-        require_once ROOT_PATH . '/app/views/layouts/footer.php';
-    }
-
-    /**
-     * HÀM listUsers (Sửa lỗi: Thêm Header/Footer)
+     * HÀM listUsers
      */
     public function listUsers() {
         global $conn;
         $userModel = new User($conn);
         $users = $userModel->getAllUsers();
         
-        // SỬA LỖI: Thêm Header/Footer
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/user_list.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 
     /**
-     * HÀM updateUserRole (Không đổi - Xử lý)
+     * HÀM updateUserRole
      */
     public function updateUserRole() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -528,7 +489,7 @@ class AdminController {
     }
     
     /**
-     * HÀM deleteUser (Không đổi - Xử lý)
+     * HÀM deleteUser
      */
     public function deleteUser() {
         $user_id = (int)$_GET['id'];
@@ -541,18 +502,79 @@ class AdminController {
     }
 
     /**
-     * HÀM manageImages (Sửa lỗi: Thêm Header/Footer)
+     * HÀM editUser
      */
+    public function editUser() {
+        $user_id = (int)$_GET['id'];
+        if ($user_id <= 0) die("ID không hợp lệ.");
+        
+        global $conn;
+        $userModel = new User($conn);
+        $user = $userModel->getUserById($user_id); 
+        
+        if (!$user) die("Không tìm thấy user.");
+
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/admin/user_form.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+    
     /**
-     * CẬP NHẬT (Sửa lỗi Phân trang): Hiển thị trang Quản lý Ảnh
+     * HÀM updateUser
      */
+    public function updateUser() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = (int)$_POST['user_id'];
+            $full_name = $_POST['full_name'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $address = $_POST['address'];
+            $province = $_POST['province'];
+            $role = $_POST['role'];
+
+            global $conn;
+            $userModel = new User($conn);
+            $userModel->adminUpdateUser($user_id, $full_name, $email, $phone, $address, $province, $role);
+            
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+            exit;
+        }
+    }
+    
+    /**
+     * HÀM listReviews
+     */
+    public function listReviews() {
+        global $conn;
+        $reviewModel = new Review($conn);
+        $reviews = $reviewModel->getAllReviews();
+        
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/admin/review_list.php';
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+    
+    /**
+     * HÀM deleteReview
+     */
+    public function deleteReview() {
+        $review_id = (int)$_GET['id'];
+        global $conn;
+        $reviewModel = new Review($conn);
+        $reviewModel->deleteReview($review_id);
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listReviews");
+        exit;
+    }
+
+    // ------------------------------------------------------------
+    // QUẢN LÝ HÌNH ẢNH SẢN PHẨM
+    // ------------------------------------------------------------
+    
     public function manageImages() {
         $product_id = (int)$_GET['product_id'];
         if ($product_id <= 0) die("ID sản phẩm không hợp lệ.");
 
-        // BƯỚC 2.1: Lấy và xác thực return_url
         $return_url = $_GET['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
-        // (An toàn: Đảm bảo link "Quay lại" vẫn ở trong trang admin listProducts)
         if (strpos($return_url, 'action=listProducts') === false) {
              $return_url = BASE_URL . 'index.php?controller=admin&action=listProducts';
         }
@@ -564,23 +586,15 @@ class AdminController {
         $imageModel = new ProductImage($conn);
         $images = $imageModel->getImagesByProductId($product_id);
         
-        // Tải View (và truyền $return_url)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/admin/product_images.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
     
-    /**
-     * HÀM uploadImage (Không đổi - Xử lý)
-     */
-    /**
-     * CẬP NHẬT (Sửa lỗi Phân trang): Xử lý Upload ảnh phụ
-     */
     public function uploadImage() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $product_id = (int)$_POST['product_id'];
             
-            // BƯỚC 2.2: Lấy return_url từ input hidden
             $return_url = $_POST['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
             
             $new_image_name = $this->handleUpload('product_image_file', '/public/uploads/');
@@ -591,24 +605,16 @@ class AdminController {
                 $imageModel->addImage($product_id, $new_image_name);
             }
             
-            // Tải lại trang quản lý (TRUYỀN LẠI return_url)
             $redirect_to = BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id . "&return_url=" . urlencode($return_url);
             header("Location: " . $redirect_to);
             exit;
         }
     }
     
-    /**
-     * HÀM deleteImage (Không đổi - Xử lý)
-     */
-    /**
-     * CẬP NHẬT (Sửa lỗi Phân trang): Xử lý Xóa ảnh phụ
-     */
     public function deleteImage() {
         $image_id = (int)$_GET['image_id'];
-        $product_id = (int)$_GET['product_id']; // Để quay lại
+        $product_id = (int)$_GET['product_id']; 
         
-        // BƯỚC 2.3: Lấy return_url từ GET
         $return_url = $_GET['return_url'] ?? (BASE_URL . 'index.php?controller=admin&action=listProducts');
 
         global $conn;
@@ -623,123 +629,123 @@ class AdminController {
             $imageModel->deleteImage($image_id);
         }
         
-        // Tải lại trang quản lý (TRUYỀN LẠI return_url)
         $redirect_to = BASE_URL . "index.php?controller=admin&action=manageImages&product_id=" . $product_id . "&return_url=" . urlencode($return_url);
         header("Location: " . $redirect_to);
         exit;
     }
 
-    /**
-     * HÀM listReviews (Sửa lỗi: Thêm Header/Footer)
-     */
-    public function listReviews() {
-        global $conn;
-        $reviewModel = new Review($conn);
-        $reviews = $reviewModel->getAllReviews();
-        
-        // SỬA LỖI: Thêm Header/Footer
-        require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/admin/review_list.php';
-        require_once ROOT_PATH . '/app/views/layouts/footer.php';
-    }
+    // ------------------------------------------------------------
+    // QUẢN LÝ MÃ GIẢM GIÁ (COUPON)
+    // ------------------------------------------------------------
     
     /**
-     * HÀM deleteReview (Không đổi - Xử lý)
+     * HÀM listCoupons: Hiển thị danh sách Mã giảm giá
      */
-    public function deleteReview() {
-        $review_id = (int)$_GET['id'];
+    public function listCoupons() {
         global $conn;
-        $reviewModel = new Review($conn);
-        $reviewModel->deleteReview($review_id);
-        header("Location: " . BASE_URL . "index.php?controller=admin&action=listReviews");
-        exit;
-    }
-    
-    /**
-     * HÀM MỚI (để sửa lỗi): Hiển thị form Sửa User
-     * URL: index.php?controller=admin&action=editUser&id=123
-     */
-    /**
-     * CẬP NHẬT (Sửa lỗi Địa chỉ): Hiển thị form Sửa User (có Dropdown)
-     */
-    public function editUser() {
-        $user_id = (int)$_GET['id'];
-        if ($user_id <= 0) die("ID không hợp lệ.");
-        
-        global $conn;
-        $userModel = new User($conn);
-        $user = $userModel->getUserById($user_id);
-        
-        if (!$user) die("Không tìm thấy user.");
-        
-        // --- LOGIC ĐỊA CHỈ MỚI (Giống AccountController) ---
-        if (!class_exists('Address')) {
-            require_once ROOT_PATH . '/app/models/Address.php';
-        }
-        $addressModel = new Address($conn);
-        
-        // 1. Luôn lấy danh sách Tỉnh/Thành
-        $provinces = $addressModel->getProvinces();
-        
-        // 2. Nếu user đã có Tỉnh, lấy danh sách Quận
-        $districts = [];
-        if (!empty($user['province_id'])) {
-            $districts = $addressModel->getDistrictsByProvince($user['province_id']);
-        }
-        
-        // 3. Nếu user đã có Quận, lấy danh sách Phường
-        $wards = [];
-        if (!empty($user['district_id'])) {
-            $wards = $addressModel->getWardsByDistrict($user['district_id']);
-        }
-        // --- KẾT THÚC LOGIC MỚI ---
+        // Cần tải Coupon Model ngay trước khi dùng
+        require_once ROOT_PATH . '/app/models/Coupon.php';
+        $couponModel = new Coupon($conn);
+        $coupons = $couponModel->getAllCoupons();
 
-        // Tải layout và view (Truyền thêm $provinces, $districts, $wards)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
-        require_once ROOT_PATH . '/app/views/admin/user_form.php';
+        require_once ROOT_PATH . '/app/views/admin/coupon_list.php'; 
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
-    
+
     /**
-     * HÀM MỚI (để sửa lỗi): Xử lý Cập nhật User
-     * URL: (Form POST tới) index.php?controller=admin&action=updateUser
+     * HÀM createCoupon: Hiển thị form tạo Mã giảm giá
      */
+    public function createCoupon() {
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/admin/coupon_form.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
     /**
-     * CẬP NHẬT (Sửa lỗi Địa chỉ): Xử lý Cập nhật User (Lưu ID)
+     * HÀM storeCoupon: Xử lý tạo Mã giảm giá
      */
-    public function updateUser() {
+    public function storeCoupon() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $user_id = (int)$_POST['user_id'];
-            $full_name = $_POST['full_name'];
-            $email = $_POST['email'];
-            $phone = $_POST['phone'];
-            $address = $_POST['address']; // Số nhà/Tên đường
-            $role = $_POST['role'];
-            
-            // Lấy 3 ID Địa chỉ từ Form
-            $province_id = !empty($_POST['province_id']) ? (int)$_POST['province_id'] : null;
-            $district_id = !empty($_POST['district_id']) ? (int)$_POST['district_id'] : null;
-            $ward_code   = !empty($_POST['ward_code']) ? $_POST['ward_code'] : null;
-
             global $conn;
-            $userModel = new User($conn);
+            require_once ROOT_PATH . '/app/models/Coupon.php';
+            $couponModel = new Coupon($conn);
             
-            // Gọi hàm updateProfile (vì hàm adminUpdateUser cũ chưa hỗ trợ ID địa chỉ)
-            // Hoặc tốt nhất là cập nhật hàm adminUpdateUser trong Model
-            // Ở đây ta dùng tạm updateProfile rồi cập nhật role riêng
-            
-            // 1. Cập nhật thông tin cá nhân & địa chỉ
-            $userModel->updateProfile($user_id, $full_name, $phone, $address, $province_id, $district_id, $ward_code);
-            
-            // 2. Cập nhật role (vì updateProfile không sửa role)
-            $userModel->updateUserRole($user_id, $role);
-            
-            // (Bạn cũng có thể viết 1 hàm adminUpdateUserV2 trong Model nhận đủ tham số)
-            
-            header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+            $expires = $_POST['expires_at'] ? date('Y-m-d H:i:s', strtotime($_POST['expires_at'])) : NULL;
+            $is_public = isset($_POST['is_public']) ? 1 : 0;
+            $max_usage = (int)$_POST['max_usage'];
+            // Đảm bảo mã được lưu bằng chữ hoa
+            $code = trim(strtoupper($_POST['coupon_code']));
+
+            if ($couponModel->createCoupon(
+                $code, 
+                $_POST['discount_type'], 
+                $_POST['discount_value'], 
+                $expires, 
+                $max_usage,
+                $is_public
+            )) {
+                set_flash_message("Tạo mã giảm giá **" . htmlspecialchars($code) . "** thành công.", 'success');
+            } else {
+                set_flash_message("Lỗi khi tạo mã giảm giá. Mã **" . htmlspecialchars($code) . "** có thể đã tồn tại.", 'error');
+            }
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listCoupons");
             exit;
         }
     }
     
+    /**
+     * HÀM deleteCoupon: Xử lý xóa Mã giảm giá
+     */
+    public function deleteCoupon() {
+        $id = (int)$_GET['id'];
+        global $conn;
+        require_once ROOT_PATH . '/app/models/Coupon.php';
+        $couponModel = new Coupon($conn);
+        
+        $couponModel->deleteCoupon($id);
+        set_flash_message("Xóa mã giảm giá thành công.", 'success');
+        header("Location: " . BASE_URL . "index.php?controller=admin&action=listCoupons");
+        exit;
+    }
+    
+    // ------------------------------------------------------------
+    // QUẢN LÝ LIÊN HỆ (CONTACTS) <== PHẦN MỚI
+    // ------------------------------------------------------------
+
+    /**
+     * HÀM listContacts: Hiển thị danh sách Liên hệ
+     */
+    public function listContacts() {
+        global $conn;
+        $contactModel = new Contact($conn);
+        $contacts = $contactModel->getAllContacts();
+
+        require_once ROOT_PATH . '/app/views/layouts/header.php';
+        require_once ROOT_PATH . '/app/views/admin/contact_list.php'; 
+        require_once ROOT_PATH . '/app/views/layouts/footer.php';
+    }
+
+    /**
+     * HÀM updateContactStatus: Cập nhật trạng thái Liên hệ
+     */
+    public function updateContactStatus() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $contact_id = (int)$_POST['contact_id'];
+            $new_status = $_POST['new_status'];
+            
+            global $conn;
+            $contactModel = new Contact($conn);
+            
+            if ($contactModel->updateStatus($contact_id, $new_status)) {
+                set_flash_message("Cập nhật trạng thái liên hệ #$contact_id thành công.", 'success');
+            } else {
+                set_flash_message("Lỗi khi cập nhật trạng thái liên hệ.", 'error');
+            }
+
+            // Chuyển hướng về trang danh sách
+            header("Location: " . BASE_URL . "index.php?controller=admin&action=listContacts");
+            exit;
+        }
+    }
 }
-?>

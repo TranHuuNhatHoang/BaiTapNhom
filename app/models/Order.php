@@ -8,30 +8,44 @@ class Order {
 
     /**
      * Tạo một đơn hàng mới trong bảng 'orders'
+     * CẬP NHẬT: Thêm coupon_code và discount, district_id, ward_code (10 tham số)
      * Trả về ID của đơn hàng vừa tạo (order_id)
-     */
-    /**
-     * CẬP NHẬT (Người 1 - GĐ18): Thêm coupon_code và discount
-     */
-    /**
-     * CẬP NHẬT (BƯỚC 7): Thêm district_id, ward_code (10 tham số)
      */
     public function createOrder($user_id, $total_amount, $shipping_address, $shipping_phone, $shipping_district_id, $shipping_ward_code, $notes, $payment_method, $coupon_code, $discount_applied) {
         
-        // (Tính tổng tiền cuối cùng)
+        // Tính tổng tiền cuối cùng
         $final_total = $total_amount - $discount_applied;
         
-        // (SQL đã được cập nhật để thêm 2 cột mới)
+        // SQL đã được cập nhật để thêm 2 cột mới (discount, code)
+        // và 2 cột địa chỉ mới
         $sql = "INSERT INTO orders (user_id, total_amount, shipping_address, shipping_phone, 
-                                    shipping_district_id, shipping_ward_code, -- THÊM 2 CỘT MỚI
-                                    notes, payment_method, order_status, 
-                                    coupon_code, discount_applied)
+                                     shipping_district_id, shipping_ward_code, 
+                                     notes, payment_method, order_status, 
+                                     coupon_code, discount_applied)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)";
         
         $stmt = $this->conn->prepare($sql);
         
-        // (bind_param đã được cập nhật: idssissssd)
-        $stmt->bind_param("idssissssd", $user_id, $final_total, $shipping_address, $shipping_phone, $shipping_district_id, $shipping_ward_code, $notes, $payment_method, $coupon_code, $discount_applied);
+        // bind_param đã được cập nhật: i (user_id), d (final_total), s (addr), s (phone), 
+        // i (district_id), s (ward_code), s (notes), s (method), s (coupon_code), d (discount_applied)
+        // Tổng cộng: 10 tham số (i d s s i s s s s d)
+        
+        // Chú ý: $final_total (double) là tham số thứ 2
+        // $coupon_code (string) là tham số thứ 9
+        // $discount_applied (double) là tham số thứ 10
+        
+        $stmt->bind_param("idssissssd", 
+            $user_id, 
+            $final_total, 
+            $shipping_address, 
+            $shipping_phone, 
+            $shipping_district_id, 
+            $shipping_ward_code, 
+            $notes, 
+            $payment_method, 
+            $coupon_code, 
+            $discount_applied
+        );
         
         if ($stmt->execute()) {
             return $this->conn->insert_id;
@@ -52,12 +66,13 @@ class Order {
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    
     /**
      * HÀM MỚI CỦA BẠN: Lấy đơn hàng của MỘT người dùng
      */
     public function getOrdersByUserId($user_id) {
         $sql = "SELECT order_id, created_at, total_amount, order_status, shipping_address, 
-                       shipping_provider, tracking_code 
+                        shipping_provider, tracking_code 
                 FROM orders 
                 WHERE user_id = ?
                 ORDER BY created_at DESC";
@@ -69,15 +84,9 @@ class Order {
         
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    
     /**
-     * HÀM MỚI: Lấy MỘT đơn hàng (để kiểm tra)
-     */
-   /**
-     * CẬP NHẬT (GĐ 23): Lấy 1 đơn hàng của User
-     * (Có thể tìm bằng order_id HOẶC tracking_code)
-     */
-   /**
-     * CẬP NHẬT (GĐ 23): Lấy 1 đơn hàng của User
+     * CẬP NHẬT: Lấy 1 đơn hàng của User
      * (Có thể tìm bằng order_id HOẶC tracking_code)
      */
     public function getOrderByIdAndUserId($order_id, $user_id, $tracking_code = null) {
@@ -87,13 +96,14 @@ class Order {
                 FROM orders WHERE user_id = ?";
         
         // 2. Thêm điều kiện (ID hoặc Mã vận đơn)
+        $param_type = "is"; 
+        $param_value = $order_id; // Mặc định dùng order_id
+        
         if ($order_id) {
             $sql .= " AND order_id = ?";
-            $param_type = "ii"; // integer (user_id), integer (order_id)
-            $param_value = $order_id;
         } else if ($tracking_code) {
             $sql .= " AND tracking_code = ?";
-            $param_type = "is"; // integer (user_id), string (tracking_code)
+            $param_type = "is"; // Dùng is (int, string)
             $param_value = $tracking_code;
         } else {
             return null; // Không có ID hoặc Code
@@ -101,6 +111,7 @@ class Order {
         
         // 3. Thực thi
         $stmt = $this->conn->prepare($sql);
+        // Bind $user_id (int) và $param_value (int hoặc string)
         $stmt->bind_param($param_type, $user_id, $param_value);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
@@ -135,7 +146,7 @@ class Order {
     }
 
     
-     // HÀM : Cập nhật trạng thái đơn hàng (cho Admin)
+    // HÀM : Cập nhật trạng thái đơn hàng (cho Admin)
      
     public function updateOrderStatus($order_id, $new_status) {
         $sql = "UPDATE orders SET order_status = ? WHERE order_id = ?";
@@ -143,16 +154,9 @@ class Order {
         $stmt->bind_param("si", $new_status, $order_id);
         return $stmt->execute();
     }
+    
     /**
-     * HÀM MỚI (Người 1): Lấy 1 đơn hàng (cho Admin, có JOIN User)
-     * (Hàm 'getOrderByIdAndUserId' đã có nhưng nó check user, không dùng cho admin được)
-     */
-    /**
-     * HÀM (Cập nhật GĐ 23): Lấy 1 đơn hàng (cho Admin)
-     * (ĐÃ JOIN VỚI DISTRICTS/WARDS ĐỂ LẤY TÊN)
-     */
-    /**
-     * CẬP NHẬT (Sửa lỗi GĐ 23): Lấy 1 đơn hàng (cho Admin)
+     * CẬP NHẬT: Lấy 1 đơn hàng (cho Admin)
      * (ĐÃ JOIN VỚI USERS, DISTRICTS, WARDS, VÀ PROVINCES)
      */
     public function getOrderByIdForAdmin($order_id) {
@@ -182,6 +186,7 @@ class Order {
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
+    
     /**
      * HÀM MỚI : Thống kê cho Dashboard
      */
@@ -199,7 +204,8 @@ class Order {
             'new_orders' => $new_orders ?? 0
         ];
     }
-/**
+    
+    /**
      * HÀM MỚI (Người 1): Kiểm tra xem user đã mua SP này chưa
      */
     public function checkUserPurchase($user_id, $product_id) {
@@ -222,7 +228,8 @@ class Order {
         
         return $result->num_rows > 0; // Trả về true nếu tìm thấy (đã mua)
     }
- public function getRevenueLast7Days() {
+    
+    public function getRevenueLast7Days() {
         $sql = "SELECT 
                     DATE(created_at) as order_date, 
                     SUM(total_amount) as daily_revenue
@@ -239,7 +246,8 @@ class Order {
         $result = $this->conn->query($sql);
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-  public function getLatestOrders($limit = 5) {
+    
+    public function getLatestOrders($limit = 5) {
         $sql = "SELECT o.order_id, o.order_status, o.total_amount, u.full_name
                 FROM orders o
                 JOIN users u ON o.user_id = u.user_id
@@ -252,9 +260,7 @@ class Order {
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
-    /**
-     * HÀM MỚI (BƯỚC 4.1): Admin cập nhật Mã vận đơn
-     */
+    
     /**
      * HÀM MỚI (Admin): Cập nhật Mã vận đơn
      */
@@ -265,6 +271,7 @@ class Order {
         $stmt->bind_param("ssi", $provider, $tracking_code, $order_id);
         return $stmt->execute();
     }
+    
     /**
      * HÀM MỚI: Cập nhật trạng thái thanh toán (ZaloPay)
      */

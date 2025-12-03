@@ -1,17 +1,15 @@
 <?php
 // Tải functions (để dùng flash message nếu cần)
 require_once ROOT_PATH . '/config/functions.php';
+// THÊM MODEL LIÊN HỆ
+require_once ROOT_PATH . '/app/models/Contact.php';
 
 class PageController {
 
     /**
      * Action: Hiển thị trang Giới thiệu
-     * URL: index.php?controller=page&action=about
      */
     public function about() {
-        // (Sau này bạn có thể lấy nội dung từ CSDL)
-        
-        // Tải View (Đầy đủ Header, Content, Footer)
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/pages/about.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
@@ -19,30 +17,37 @@ class PageController {
 
     /**
      * Action: Hiển thị trang Liên hệ
-     * URL: index.php?controller=page&action=contact
      */
     public function contact() {
-        // Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/pages/contact.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
     
     /**
-     * Action: Xử lý Form Liên hệ
-     * URL: (Form POST tới) index.php?controller=page&action=handleContact
+     * Action: Xử lý Form Liên hệ (Lưu vào CSDL) - ĐÃ THÊM PHONE
      */
     public function handleContact() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'];
-            $email = $_POST['email'];
-            $message = $_POST['message'];
+            global $conn;
+            $contactModel = new Contact($conn);
             
-            // (GIẢ LẬP GỬI MAIL)
-            // (Trong dự án thật, bạn sẽ dùng PHPMailer ở đây)
-            // mail("admin@myweb.com", "Thư liên hệ từ $name", $message);
+            $name = trim($_POST['name']);
+            $email = trim($_POST['email']);
+            $phone = trim($_POST['phone']); // <== LẤY PHONE
+            $message = trim($_POST['message']);
             
-            set_flash_message("Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm.", 'success');
+            if (empty($name) || empty($email) || empty($phone) || empty($message) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                set_flash_message("Lỗi: Vui lòng điền đầy đủ và chính xác thông tin (Bao gồm SĐT).", 'error');
+            } else {
+                // LƯU VÀO CSDL
+                if ($contactModel->saveContact($name, $email, $phone, $message)) { // <== TRUYỀN PHONE
+                    set_flash_message("Gửi liên hệ thành công! Chúng tôi sẽ phản hồi sớm nhất.", 'success');
+                } else {
+                    set_flash_message("Lỗi khi lưu liên hệ. Vui lòng thử lại sau.", 'error');
+                }
+            }
+            
             header("Location: " . BASE_URL . "index.php?controller=page&action=contact");
             exit;
         }
@@ -50,13 +55,10 @@ class PageController {
 
     /**
      * Action: Hiển thị trang Chính sách & Điều khoản
-     * URL: index.php?controller=page&action=terms
      */
     public function terms() {
-        // Tải View
         require_once ROOT_PATH . '/app/views/layouts/header.php';
         require_once ROOT_PATH . '/app/views/pages/terms.php';
         require_once ROOT_PATH . '/app/views/layouts/footer.php';
     }
 }
-?>

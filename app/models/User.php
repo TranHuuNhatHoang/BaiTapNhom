@@ -71,7 +71,7 @@ class User {
     /**
      * 4. CẬP NHẬT: Lấy thông tin user (Thêm 3 cột địa chỉ mới vào SELECT)
      */
-    public function getUserById($id) {
+public function getUserById($id) {
         $sql = "SELECT user_id, full_name, email, phone, address, province, role, avatar, 
                        province_id, district_id, ward_code 
                 FROM users WHERE user_id = ?";
@@ -225,7 +225,7 @@ class User {
     /**
      * HÀM BỊ THIẾU (Giai đoạn 19 - Người 3): Cập nhật Avatar
      */
- public function updateAvatar($user_id, $avatar_filename) {
+public function updateAvatar($user_id, $avatar_filename) {
         $sql = "UPDATE users SET avatar = ? WHERE user_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("si", $avatar_filename, $user_id);
