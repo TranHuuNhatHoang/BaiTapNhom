@@ -24,7 +24,7 @@
             <th>Trạng thái</th>
             <th>Địa chỉ giao</th>
             <th>Theo dõi Vận đơn</th>
-            <th>Hành động</th>
+        
         </tr>
     </thead>
     <tbody>

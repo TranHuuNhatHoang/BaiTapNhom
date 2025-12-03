@@ -1,4 +1,5 @@
 <h1 style="color: blue;">Quản lý Mã Giảm Giá</h1>
+<a href="<?php echo BASE_URL; ?>index.php?controller=admin" class="btn btn-secondary">Tổng quan</a> 
 
 <div class="admin-nav" style="margin-bottom: 15px;">
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=createCoupon" class="btn btn-success">
@@ -8,6 +9,7 @@
 <hr>
 
 <?php display_flash_message(); ?>
+
 
 <table class="table" style="width: 100%;">
     <thead>

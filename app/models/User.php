@@ -160,12 +160,56 @@ public function getUserById($id) {
     }
 
      // HÀM Xóa user
+    
+    /**
+     * CẬP NHẬT (Hard Delete): Xóa User và TOÀN BỘ dữ liệu liên quan
+     */
     public function deleteUser($user_id) {
-        //  Tác vụ này sẽ xóa user vĩnh viễn,nếu user còn có đơn hàng thì chỉ nên vô hiệu hóa
-        $sql = "DELETE FROM users WHERE user_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        return $stmt->execute();
+        // Bắt đầu giao dịch (Transaction) để đảm bảo an toàn dữ liệu
+        $this->conn->begin_transaction();
+
+        try {
+            // 1. Xóa Đánh giá (Reviews) của User này
+            $sql = "DELETE FROM reviews WHERE user_id = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+
+            // 2. Xóa Giỏ hàng (Cart & Cart Items)
+            // (Giả sử bảng carts liên kết user_id, cart_items liên kết cart_id)
+            // Xóa items trước:
+            $this->conn->query("DELETE FROM cart_items WHERE cart_id IN (SELECT cart_id FROM carts WHERE user_id = $user_id)");
+            // Xóa cart:
+            $this->conn->query("DELETE FROM carts WHERE user_id = $user_id");
+
+            // 3. Xóa Chi tiết Đơn hàng (Order Details) trước
+            // (Phải xóa chi tiết của những đơn hàng thuộc về user này)
+            $sql_details = "DELETE FROM order_details WHERE order_id IN (SELECT order_id FROM orders WHERE user_id = ?)";
+            $stmt = $this->conn->prepare($sql_details);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+
+            // 4. Xóa Đơn hàng (Orders)
+            $sql_orders = "DELETE FROM orders WHERE user_id = ?";
+            $stmt = $this->conn->prepare($sql_orders);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+
+            // 5. Cuối cùng: Xóa User
+            $sql_user = "DELETE FROM users WHERE user_id = ?";
+            $stmt = $this->conn->prepare($sql_user);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+
+            // Nếu mọi thứ OK, lưu thay đổi
+            $this->conn->commit();
+            return true;
+
+        } catch (Exception $e) {
+            // Nếu có lỗi, hoàn tác tất cả
+            $this->conn->rollback();
+            return false; 
+        }
     }
     /**
      * HÀM MỚI : Đếm user mới (ví dụ: đăng ký trong 7 ngày qua)
