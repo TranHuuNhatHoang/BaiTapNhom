@@ -206,7 +206,7 @@ class CheckoutController {
                 // Lấy thông tin đơn hàng vừa tạo để gửi sang Zalo
                 $orderForZalo = [
                     'order_id' => $order_id,
-                    'total_amount' => $total_price_original - $discount_amount, // Tổng tiền cuối cùng
+                    'total_amount' => ($total_price_original - $discount_amount)/100, // Tổng tiền cuối cùng
                     'full_name' => $userModel->getUserById($user_id)['full_name'] 
                 ];
 

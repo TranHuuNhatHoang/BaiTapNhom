@@ -20,6 +20,10 @@
 <div class="admin-nav" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin" class="btn btn-secondary">Tổng quan</a> 
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listProducts" class="btn btn-secondary">Quản lý Sản phẩm</a> 
+     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCoupons" class="btn btn-secondary">Quản lý Mã Giảm Giá</a>
+    <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listContacts" class="btn btn-danger">
+        Quản lý Liên hệ 
+    </a> 
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listBrands" class="btn btn-secondary">Quản lý Thương hiệu</a>
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listCategories" class="btn btn-secondary">Quản lý Danh mục</a>
     <a href="<?php echo BASE_URL; ?>index.php?controller=admin&action=listOrders" class="btn btn-secondary">Quản lý Đơn hàng</a>

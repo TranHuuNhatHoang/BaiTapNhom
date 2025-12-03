@@ -493,10 +493,24 @@ class AdminController {
      */
     public function deleteUser() {
         $user_id = (int)$_GET['id'];
-        if ($user_id === $_SESSION['user_id']) die("Không thể tự xóa chính mình.");
+
+        if ($user_id === $_SESSION['user_id']) {
+             set_flash_message("Không thể tự xóa chính mình.", 'error');
+             header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
+             exit;
+        }
+
         global $conn;
         $userModel = new User($conn);
-        $userModel->deleteUser($user_id);
+        
+        // Gọi hàm deleteUser (đã cập nhật try-catch)
+        if ($userModel->deleteUser($user_id)) {
+            set_flash_message("Xóa người dùng thành công.", 'success');
+        } else {
+            // Nếu deleteUser trả về false (do dính khóa ngoại)
+            set_flash_message("Lỗi: Không thể xóa người dùng này vì họ ĐÃ CÓ ĐƠN HÀNG. (Để bảo vệ dữ liệu kinh doanh).", 'error');
+        }
+        
         header("Location: " . BASE_URL . "index.php?controller=admin&action=listUsers");
         exit;
     }

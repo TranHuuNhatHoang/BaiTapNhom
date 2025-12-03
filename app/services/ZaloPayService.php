@@ -33,7 +33,7 @@ class ZaloPayService {
             "embed_data" => $embed_data,
             "item" => $items,
             "description" => "Thanh toan don hang #" . $order['order_id'],
-            "bank_code" => "zalopayapp", // Hoặc để trống để user chọn
+             // Hoặc để trống để user chọn
         ];
 
         // Tạo chữ ký (MAC) để bảo mật
